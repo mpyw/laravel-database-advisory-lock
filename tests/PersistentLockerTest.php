@@ -11,7 +11,7 @@ class PersistentLockerTest extends TestCase
 {
     protected function connections(): array
     {
-        return ['postgres' => ['pgsql'], 'mysql' => ['mysql']];
+        return ['postgres' => ['pgsql'], 'mysql' => ['mysql'], 'sqlserver' => ['sqlsrv']];
     }
 
     /**

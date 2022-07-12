@@ -12,7 +12,7 @@ class TransactionAwareLockerTest extends TestCase
 {
     protected function connections(): array
     {
-        return ['postgres' => ['pgsql']];
+        return ['postgres' => ['pgsql'], 'sqlserver' => ['sqlsrv']];
     }
 
     /**

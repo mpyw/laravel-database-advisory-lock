@@ -22,5 +22,6 @@
     <php>
         <env name="PG_HOST" value="postgres" />
         <env name="MY_HOST" value="mysql" />
+        <env name="SS_HOST" value="sqlserver" />
     </php>
 </phpunit>

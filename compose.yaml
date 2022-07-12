@@ -23,3 +23,19 @@ services:
       POSTGRES_DB: testing
       POSTGRES_USER: testing
       POSTGRES_PASSWORD: testing
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Enterprise
+      SA_PASSWORD: Password!
+    command: |
+      /bin/sh -c "
+        ( /opt/mssql/bin/sqlservr & ) &&
+        sleep 10 &&
+        /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P Password! -Q '
+          CREATE DATABASE [testing];
+        ' &&
+        sleep infinity
+      "

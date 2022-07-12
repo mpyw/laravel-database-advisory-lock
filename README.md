@@ -4,11 +4,11 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 
 ## Requirements
 
-| Package | Version                                                                | Mandatory |
-|:---|:-----------------------------------------------------------------------|:---:|
-| PHP | <code>^8.0</code>                                                      | ✅ |
-| Laravel | <code>^8.0 &#124;&#124; ^9.0</code>                                    | ✅ |
-| PHPStan | <code>&gt;=1.1</code>                                                  | |
+| Package | Version                             | Mandatory |
+|:---|:------------------------------------|:---:|
+| PHP | <code>^8.0.2</code>                  | ✅ |
+| Laravel | <code>^8.0 &#124;&#124; ^9.0</code> | ✅ |
+| PHPStan | <code>&gt;=1.1</code>               | |
 
 ## Installing
 

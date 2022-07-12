@@ -6,6 +6,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\PostgresConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\TransactionAwareLocks;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionAwareLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
@@ -21,6 +22,10 @@ final class PostgresTransactionAwareLocker implements TransactionAwareLocker
 
     public function lockOrFail(string $key, int $timeout = 0): void
     {
+        if ($this->connection->transactionLevel() < 1) {
+            throw new InvalidTransactionLevelException('There are no transactions');
+        }
+
         if ($timeout !== 0) {
             // @codeCoverageIgnoreStart
             throw new UnsupportedDriverException('Timeout feature is not supported');

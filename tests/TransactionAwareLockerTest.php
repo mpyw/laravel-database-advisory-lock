@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
 use Illuminate\Support\Facades\DB;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
 use Throwable;
 
@@ -122,18 +123,14 @@ class TransactionAwareLockerTest extends TestCase
      * @dataProvider connections
      * @throws Throwable
      */
-    public function testInstantUnlockingWithoutTransaction(string $name): void
+    public function testWithoutTransactions(string $name): void
     {
+        $this->expectException(InvalidTransactionLevelException::class);
+        $this->expectExceptionMessage('There are no transactions');
+
         DB::connection($name)
             ->advisoryLocker()
             ->forTransaction()
             ->lockOrFail('foo');
-
-        DB::connection("{$name}2")
-            ->advisoryLocker()
-            ->forTransaction()
-            ->lockOrFail('foo');
-
-        $this->assertTrue(true);
     }
 }

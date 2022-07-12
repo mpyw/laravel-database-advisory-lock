@@ -4,11 +4,11 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 
 ## Requirements
 
-| Package | Version                                                                | Mandatory |
-|:---|:-----------------------------------------------------------------------|:---:|
-| PHP | <code>^8.0</code>                                                      | ✅ |
-| Laravel | <code>^8.0 &#124;&#124; ^9.0</code>                                    | ✅ |
-| PHPStan | <code>&gt;=1.1</code>                                                  | |
+| Package | Version                             | Mandatory |
+|:---|:------------------------------------|:---:|
+| PHP | <code>^8.0.2</code>                  | ✅ |
+| Laravel | <code>^8.0 &#124;&#124; ^9.0</code> | ✅ |
+| PHPStan | <code>&gt;=1.1</code>               | |
 
 ## Installing
 
@@ -70,6 +70,11 @@ $result = DB::advisoryLocker()
         return ...;
     }, timeout: 5);
 ```
+
+NOTE:
+- Postgres driver converts key strings into 64-bit integers through `hashtext()` function.
+- When key strings exceed 64 bytes limit, MySQL driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
+- With either hashing algorithm, collisions can theoretically occur with very low probability.
 
 ## Advanced Usage
 

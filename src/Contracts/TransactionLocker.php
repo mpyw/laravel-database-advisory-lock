@@ -6,15 +6,16 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Contracts;
 
 use Illuminate\Database\QueryException;
 
-interface PersistentLock
+interface TransactionLocker
 {
     /**
      * @throws QueryException
      */
-    public function release(): bool;
+    public function tryLock(string $key, int $timeout = 0): bool;
 
     /**
+     * @throws LockFailedException
      * @throws QueryException
      */
-    public function __destruct();
+    public function lockOrFail(string $key, int $timeout = 0): void;
 }

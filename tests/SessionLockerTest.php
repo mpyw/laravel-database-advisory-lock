@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
 use Illuminate\Support\Facades\DB;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Selector;
 
-class PersistentLockerTest extends TestCase
+class SessionLockerTest extends TestCase
 {
     public function connections(): array
     {
@@ -24,11 +24,11 @@ class PersistentLockerTest extends TestCase
 
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function () use ($name, &$passed): void {
                 DB::connection("{$name}2")
                     ->advisoryLocker()
-                    ->persistent()
+                    ->forSession()
                     ->withLocking('bar', function () use (&$passed): void {
                         $passed = true;
                     });
@@ -44,14 +44,14 @@ class PersistentLockerTest extends TestCase
     {
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function () use ($name, &$passed): void {
-                $this->expectException(LockConflictException::class);
+                $this->expectException(LockFailedException::class);
                 $this->expectExceptionMessage('Failed to acquire lock: foo');
 
                 DB::connection("{$name}2")
                     ->advisoryLocker()
-                    ->persistent()
+                    ->forSession()
                     ->withLocking('foo', function () use (&$passed): void {
                         $passed = true;
                     });
@@ -69,11 +69,11 @@ class PersistentLockerTest extends TestCase
 
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function () use ($name, &$passed): void {
                 DB::connection($name)
                     ->advisoryLocker()
-                    ->persistent()
+                    ->forSession()
                     ->withLocking('bar', function () use (&$passed): void {
                         $passed = true;
                     });
@@ -91,11 +91,11 @@ class PersistentLockerTest extends TestCase
 
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function () use ($name, &$passed): void {
                 DB::connection($name)
                     ->advisoryLocker()
-                    ->persistent()
+                    ->forSession()
                     ->withLocking('foo', function () use (&$passed): void {
                         $passed = true;
                     });
@@ -111,11 +111,11 @@ class PersistentLockerTest extends TestCase
 
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function () use ($name, &$passed): void {
                 DB::connection($name)
                     ->advisoryLocker()
-                    ->persistent()
+                    ->forSession()
                     ->withLocking('foo', function () use (&$passed): void {
                         $passed = true;
                     });
@@ -132,7 +132,7 @@ class PersistentLockerTest extends TestCase
 
         DB::connection($name)
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking($key, function () use ($name, $key, &$passed): void {
                 $this->assertTrue(
                     (new Selector(DB::connection($name)))

@@ -7,24 +7,24 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 use Illuminate\Database\Connection;
 use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\PostgresConnection;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLocker;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionAwareLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
 
 class LockerFactory implements Contracts\LockerFactory
 {
-    protected ?TransactionAwareLocker $transaction = null;
-    protected ?PersistentLocker $persistent = null;
+    protected ?TransactionLocker $transaction = null;
+    protected ?SessionLocker $session = null;
 
     public function __construct(
         protected Connection $connection,
     ) {
     }
 
-    public function forTransaction(): TransactionAwareLocker
+    public function forTransaction(): TransactionLocker
     {
         if ($this->connection instanceof PostgresConnection) {
-            return $this->transaction ??= new PostgresTransactionAwareLocker($this->connection);
+            return $this->transaction ??= new PostgresTransactionLocker($this->connection);
         }
 
         // @codeCoverageIgnoreStart
@@ -32,13 +32,13 @@ class LockerFactory implements Contracts\LockerFactory
         // @codeCoverageIgnoreEnd
     }
 
-    public function persistent(): PersistentLocker
+    public function forSession(): SessionLocker
     {
         if ($this->connection instanceof MySqlConnection) {
-            return $this->persistent ??= new MySqlPersistentLocker($this->connection);
+            return $this->session ??= new MySqlSessionLocker($this->connection);
         }
         if ($this->connection instanceof PostgresConnection) {
-            return $this->persistent ??= new PostgresPersistentLocker($this->connection);
+            return $this->session ??= new PostgresSessionLocker($this->connection);
         }
         // @codeCoverageIgnoreStart
         throw new UnsupportedDriverException('PersistentLocker is not supported');

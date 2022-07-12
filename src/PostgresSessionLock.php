@@ -6,17 +6,17 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\PostgresConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\ReleasesWhenDestructed;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use WeakMap;
 
-final class PostgresPersistentLock implements PersistentLock
+final class PostgresSessionLock implements SessionLock
 {
     use ReleasesWhenDestructed;
 
     private bool $released = false;
 
     /**
-     * @param WeakMap<PersistentLock, bool> $locks
+     * @param WeakMap<SessionLock, bool> $locks
      */
     public function __construct(
         private PostgresConnection $connection,

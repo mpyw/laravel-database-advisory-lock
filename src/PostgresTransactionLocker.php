@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\PostgresConnection;
-use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\TransactionAwareLocks;
+use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\TransactionalLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionAwareLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
 
-final class PostgresTransactionAwareLocker implements TransactionAwareLocker
+final class PostgresTransactionLocker implements TransactionLocker
 {
-    use TransactionAwareLocks;
+    use TransactionalLocks;
 
     public function __construct(
         protected PostgresConnection $connection,
@@ -38,7 +38,7 @@ final class PostgresTransactionAwareLocker implements TransactionAwareLocker
             ->selectBool($sql, [$key], false);
 
         if (!$result) {
-            throw new LockConflictException("Failed to acquire lock: {$key}", $sql, [$key]);
+            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);
         }
     }
 }

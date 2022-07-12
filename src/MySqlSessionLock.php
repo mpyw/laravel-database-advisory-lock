@@ -6,19 +6,19 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\MySqlConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\ReleasesWhenDestructed;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use WeakMap;
 
 use function array_fill;
 
-final class MySqlPersistentLock implements PersistentLock
+final class MySqlSessionLock implements SessionLock
 {
     use ReleasesWhenDestructed;
 
     private bool $released = false;
 
     /**
-     * @param WeakMap<PersistentLock, bool> $locks
+     * @param WeakMap<SessionLock, bool> $locks
      */
     public function __construct(
         private MySqlConnection $connection,

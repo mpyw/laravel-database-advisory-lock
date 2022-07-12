@@ -7,7 +7,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Contracts;
 use Illuminate\Database\QueryException;
 use RuntimeException;
 
-class LockConflictException extends QueryException
+class LockFailedException extends QueryException
 {
     public function __construct(string $message, string $sql, array $bindings)
     {

@@ -6,7 +6,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Contracts;
 
 interface LockerFactory
 {
-    public function forTransaction(): TransactionAwareLocker;
+    public function forTransaction(): TransactionLocker;
 
-    public function persistent(): PersistentLocker;
+    public function forSession(): SessionLocker;
 }

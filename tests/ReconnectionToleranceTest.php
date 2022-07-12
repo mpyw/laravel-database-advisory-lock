@@ -80,7 +80,7 @@ class ReconnectionToleranceTest extends TestCase
             // MySQL doesn't accept empty locks, so this will trigger QueryException
             DB::connection('mysql')
                 ->advisoryLocker()
-                ->persistent()
+                ->forSession()
                 ->withLocking('', fn () => null);
         } catch (QueryException) {
         }
@@ -97,7 +97,7 @@ class ReconnectionToleranceTest extends TestCase
     {
         DB::connection('mysql')
             ->advisoryLocker()
-            ->persistent()
+            ->forSession()
             ->withLocking('foo', function (): void {
                 $this->startListening();
 
@@ -105,7 +105,7 @@ class ReconnectionToleranceTest extends TestCase
                     // MySQL doesn't accept empty locks, so this will trigger QueryException
                     DB::connection('mysql')
                         ->advisoryLocker()
-                        ->persistent()
+                        ->forSession()
                         ->withLocking('', fn () => null);
                 } catch (QueryException) {
                 }

@@ -44,8 +44,8 @@ trait AdvisoryLocks
         assert($this instanceof Connection);
         assert(property_exists($this, 'transactions'));
 
-        // Don't try again if there are persistent locks
-        if ((int)$this->transactions >= 1 || $this->advisoryLocker()->persistent()->hasAny()) {
+        // Don't try again if there are session-level locks
+        if ((int)$this->transactions >= 1 || $this->advisoryLocker()->forSession()->hasAny()) {
             throw $e;
         }
 

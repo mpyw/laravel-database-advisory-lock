@@ -6,7 +6,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Contracts;
 
 use Illuminate\Database\QueryException;
 
-interface PersistentLocker
+interface SessionLocker
 {
     /**
      * @phpstan-template T
@@ -17,7 +17,7 @@ interface PersistentLocker
      * @psalm-param callable(): T $callback
      * @psalm-return T
      *
-     * @throws LockConflictException
+     * @throws LockFailedException
      * @throws QueryException
      */
     public function withLocking(string $key, callable $callback, int $timeout = 0): mixed;
@@ -25,13 +25,13 @@ interface PersistentLocker
     /**
      * @throws QueryException
      */
-    public function tryLock(string $key, int $timeout = 0): ?PersistentLock;
+    public function tryLock(string $key, int $timeout = 0): ?SessionLock;
 
     /**
-     * @throws LockConflictException
+     * @throws LockFailedException
      * @throws QueryException
      */
-    public function lockOrFail(string $key, int $timeout = 0): PersistentLock;
+    public function lockOrFail(string $key, int $timeout = 0): SessionLock;
 
     public function hasAny(): bool;
 }

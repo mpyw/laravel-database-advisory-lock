@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\PostgresConnection;
-use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\PersistentlyLocks;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\SessionLocks;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
 use WeakMap;
 
-final class PostgresPersistentLocker implements PersistentLocker
+final class PostgresSessionLocker implements SessionLocker
 {
-    use PersistentlyLocks;
+    use SessionLocks;
 
     /**
-     * @var WeakMap<PersistentLock, bool>
+     * @var WeakMap<SessionLock, bool>
      */
     protected WeakMap $locks;
 
@@ -27,7 +27,7 @@ final class PostgresPersistentLocker implements PersistentLocker
         $this->locks = new WeakMap();
     }
 
-    public function lockOrFail(string $key, int $timeout = 0): PersistentLock
+    public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
         if ($timeout !== 0) {
             // @codeCoverageIgnoreStart
@@ -41,10 +41,10 @@ final class PostgresPersistentLocker implements PersistentLocker
             ->selectBool($sql, [$key], false);
 
         if (!$result) {
-            throw new LockConflictException("Failed to acquire lock: {$key}", $sql, [$key]);
+            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);
         }
 
-        $lock = new PostgresPersistentLock($this->connection, $this->locks, $key);
+        $lock = new PostgresSessionLock($this->connection, $this->locks, $key);
         $this->locks[$lock] = true;
 
         return $lock;

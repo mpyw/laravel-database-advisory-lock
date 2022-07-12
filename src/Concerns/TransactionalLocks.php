@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Concerns;
 
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 
 /**
  * @internal
  */
-trait TransactionAwareLocks
+trait TransactionalLocks
 {
     public function tryLock(string $key, int $timeout = 0): bool
     {
@@ -17,7 +17,7 @@ trait TransactionAwareLocks
             $this->lockOrFail($key, $timeout);
 
             return true;
-        } catch (LockConflictException) {
+        } catch (LockFailedException) {
             return false;
         }
     }

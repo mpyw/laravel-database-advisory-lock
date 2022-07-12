@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock;
 
 use Illuminate\Database\MySqlConnection;
-use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\PersistentlyLocks;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\SessionLocks;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
 use WeakMap;
 
 use function array_fill;
 
-final class MySqlPersistentLocker implements PersistentLocker
+final class MySqlSessionLocker implements SessionLocker
 {
-    use PersistentlyLocks;
+    use SessionLocks;
 
     /**
-     * @var WeakMap<PersistentLock, bool>
+     * @var WeakMap<SessionLock, bool>
      */
     private WeakMap $locks;
 
@@ -28,7 +28,7 @@ final class MySqlPersistentLocker implements PersistentLocker
         $this->locks = new WeakMap();
     }
 
-    public function lockOrFail(string $key, int $timeout = 0): PersistentLock
+    public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
         $sql = "SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, {$timeout})";
         $bindings = array_fill(0, 4, $key);
@@ -37,10 +37,10 @@ final class MySqlPersistentLocker implements PersistentLocker
             ->selectBool($sql, $bindings, false);
 
         if (!$result) {
-            throw new LockConflictException("Failed to acquire lock: {$key}", $sql, $bindings);
+            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, $bindings);
         }
 
-        $lock = new MySqlPersistentLock($this->connection, $this->locks, $key);
+        $lock = new MySqlSessionLock($this->connection, $this->locks, $key);
         $this->locks[$lock] = true;
 
         return $lock;

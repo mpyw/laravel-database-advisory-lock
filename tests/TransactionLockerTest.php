@@ -6,10 +6,10 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Throwable;
 
-class TransactionAwareLockerTest extends TestCase
+class TransactionLockerTest extends TestCase
 {
     public function connections(): array
     {
@@ -55,7 +55,7 @@ class TransactionAwareLockerTest extends TestCase
                 ->forTransaction()
                 ->lockOrFail('foo');
 
-            $this->expectException(LockConflictException::class);
+            $this->expectException(LockFailedException::class);
             $this->expectExceptionMessage('Failed to acquire lock: foo');
 
             DB::connection("{$name}2")->transaction(function () use ($name): void {

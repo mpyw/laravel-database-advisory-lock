@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\DB;
 
 // Postgres/MySQL
 $result = DB::advisoryLocker()
-    ->persistent()
+    ->forSession()
     ->withLocking('<key>', function () {
         // critical section here
         return ...;
@@ -64,7 +64,7 @@ $result = DB::transaction(function () {
 
 // MySQL only feature
 $result = DB::advisoryLocker()
-    ->persistent()
+    ->forSession()
     ->withLocking('<key>', function () {
         // critical section here
         return ...;

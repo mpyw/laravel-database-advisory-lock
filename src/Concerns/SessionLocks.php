@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Concerns;
 
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 
 /**
  * @internal
  */
-trait PersistentlyLocks
+trait SessionLocks
 {
-    abstract public function lockOrFail(string $key, int $timeout = 0): PersistentLock;
+    abstract public function lockOrFail(string $key, int $timeout = 0): SessionLock;
 
     public function withLocking(string $key, callable $callback, int $timeout = 0): mixed
     {
@@ -25,11 +25,11 @@ trait PersistentlyLocks
         }
     }
 
-    public function tryLock(string $key, int $timeout = 0): ?PersistentLock
+    public function tryLock(string $key, int $timeout = 0): ?SessionLock
     {
         try {
             return $this->lockOrFail($key, $timeout);
-        } catch (LockConflictException) {
+        } catch (LockFailedException) {
             return null;
         }
     }

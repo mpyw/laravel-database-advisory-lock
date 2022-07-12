@@ -28,7 +28,7 @@ trait PersistentlyLocks
     public function tryLock(string $key, int $timeout = 0): ?PersistentLock
     {
         try {
-            return $this->tryLock($key, $timeout);
+            return $this->lockOrFail($key, $timeout);
         } catch (LockConflictException) {
             return null;
         }

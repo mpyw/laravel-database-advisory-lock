@@ -28,4 +28,18 @@ final class Selector
                 ->selectOne($sql, $bindings, $useReadPdo),
         );
     }
+
+    /**
+     * @throws QueryException
+     */
+    public function selectInt(string $sql, array $bindings, bool $useReadPdo = true): int
+    {
+        $value = current(
+            (array)$this
+                ->connection
+                ->selectOne($sql, $bindings, $useReadPdo),
+        );
+
+        return $value === null ? -999 : (int)$value;
+    }
 }

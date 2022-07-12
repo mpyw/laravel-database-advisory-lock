@@ -7,6 +7,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 use Illuminate\Database\Connection;
 use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\PostgresConnection;
+use Illuminate\Database\SqlServerConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionAwareLocker;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
@@ -26,6 +27,8 @@ class LockerFactory implements Contracts\LockerFactory
         if ($this->connection instanceof PostgresConnection) {
             return $this->transaction ??= new PostgresTransactionAwareLocker($this->connection);
         }
+        if ($this->connection instanceof SqlServerConnection) {
+            return $this->transaction ??= new SqlServerTransactionAwareLocker($this->connection);
         }
         // @codeCoverageIgnoreStart
         throw new UnsupportedDriverException('TransactionAwareLocker is not supported');
@@ -39,6 +42,9 @@ class LockerFactory implements Contracts\LockerFactory
         }
         if ($this->connection instanceof PostgresConnection) {
             return $this->persistent ??= new PostgresPersistentLocker($this->connection);
+        }
+        if ($this->connection instanceof SqlServerConnection) {
+            return $this->persistent ??= new SqlServerPersistentLocker($this->connection);
         }
         // @codeCoverageIgnoreStart
         throw new UnsupportedDriverException('PersistentLocker is not supported');

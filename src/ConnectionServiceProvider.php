@@ -8,6 +8,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Support\ServiceProvider;
 use Mpyw\LaravelDatabaseAdvisoryLock\Connections\MySqlConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Connections\PostgresConnection;
+use Mpyw\LaravelDatabaseAdvisoryLock\Connections\SqlServerConnection;
 
 final class ConnectionServiceProvider extends ServiceProvider
 {
@@ -18,5 +19,6 @@ final class ConnectionServiceProvider extends ServiceProvider
     {
         Connection::resolverFor('mysql', fn (...$args) => new MySqlConnection(...$args));
         Connection::resolverFor('pgsql', fn (...$args) => new PostgresConnection(...$args));
+        Connection::resolverFor('sqlsrv', fn (...$args) => new SqlServerConnection(...$args));
     }
 }

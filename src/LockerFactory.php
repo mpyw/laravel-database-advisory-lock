@@ -28,7 +28,7 @@ class LockerFactory implements Contracts\LockerFactory
         }
 
         // @codeCoverageIgnoreStart
-        throw new UnsupportedDriverException('TransactionAwareLocker is not supported');
+        throw new UnsupportedDriverException('TransactionLocker is not supported');
         // @codeCoverageIgnoreEnd
     }
 
@@ -41,7 +41,7 @@ class LockerFactory implements Contracts\LockerFactory
             return $this->session ??= new PostgresSessionLocker($this->connection);
         }
         // @codeCoverageIgnoreStart
-        throw new UnsupportedDriverException('PersistentLocker is not supported');
+        throw new UnsupportedDriverException('SessionLocker is not supported');
         // @codeCoverageIgnoreEnd
     }
 }

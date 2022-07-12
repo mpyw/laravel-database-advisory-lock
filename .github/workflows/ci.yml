@@ -72,6 +72,9 @@ jobs:
       - name: Prepare Coverage Directory
         run: mkdir -p build/logs
 
+      - name: PHP-CS-Fixer
+        run: composer cs
+
       - name: PHPStan
         run: composer phpstan
 

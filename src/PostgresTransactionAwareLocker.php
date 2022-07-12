@@ -22,7 +22,9 @@ final class PostgresTransactionAwareLocker implements TransactionAwareLocker
     public function lockOrFail(string $key, int $timeout = 0): void
     {
         if ($timeout !== 0) {
+            // @codeCoverageIgnoreStart
             throw new UnsupportedDriverException('Timeout feature is not supported');
+            // @codeCoverageIgnoreEnd
         }
 
         $sql = 'SELECT pg_try_advisory_xact_lock(hashtext(?))';

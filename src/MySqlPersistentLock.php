@@ -30,7 +30,7 @@ final class MySqlPersistentLock implements PersistentLock
     public function release(): bool
     {
         if (!$this->released) {
-            $sql = 'SELECT RELEASE_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 0, 24), SHA1(?)) ELSE ? END)';
+            $sql = 'SELECT RELEASE_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END)';
 
             $this->released = (new Selector($this->connection))
                 ->selectBool($sql, array_fill(0, 4, $this->key), false);

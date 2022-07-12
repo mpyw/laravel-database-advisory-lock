@@ -30,7 +30,9 @@ final class PostgresPersistentLocker implements PersistentLocker
     public function acquireOrFail(string $key, int $timeout = 0): PersistentLock
     {
         if ($timeout !== 0) {
+            // @codeCoverageIgnoreStart
             throw new UnsupportedDriverException('Timeout feature is not supported');
+            // @codeCoverageIgnoreEnd
         }
 
         $sql = 'SELECT pg_try_advisory_lock(hashtext(?))';

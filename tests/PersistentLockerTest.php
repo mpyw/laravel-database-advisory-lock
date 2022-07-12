@@ -6,10 +6,11 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockConflictException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Selector;
 
 class PersistentLockerTest extends TestCase
 {
-    protected function connections(): array
+    public function connections(): array
     {
         return ['postgres' => ['pgsql'], 'mysql' => ['mysql']];
     }
@@ -106,12 +107,9 @@ class PersistentLockerTest extends TestCase
     /**
      * @dataProvider connections
      */
-    public function testMySqlTimeout(string $name): void
+    public function testMySqlTimeout(): void
     {
-        if ($name !== 'mysql') {
-            $this->markTestSkipped();
-        }
-
+        $name = 'mysql';
         $passed = false;
 
         DB::connection($name)
@@ -124,6 +122,30 @@ class PersistentLockerTest extends TestCase
                     ->withLocking('foo', function () use (&$passed): void {
                         $passed = true;
                     });
+            });
+
+        $this->assertTrue($passed);
+    }
+
+    public function testMySqlHashing(): void
+    {
+        $name = 'mysql';
+        $key = str_repeat('a', 65);
+        $passed = false;
+
+        DB::connection($name)
+            ->advisoryLocker()
+            ->persistent()
+            ->withLocking($key, function () use ($name, $key, &$passed): void {
+                $this->assertTrue(
+                    (new Selector(DB::connection($name)))
+                        ->selectBool(
+                            'SELECT IS_USED_LOCK(?)',
+                            [substr($key, 0, 64 - 40) . sha1($key)],
+                            false,
+                        ),
+                );
+                $passed = true;
             });
 
         $this->assertTrue($passed);

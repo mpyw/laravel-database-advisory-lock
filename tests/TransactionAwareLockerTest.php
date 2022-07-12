@@ -10,7 +10,7 @@ use Throwable;
 
 class TransactionAwareLockerTest extends TestCase
 {
-    protected function connections(): array
+    public function connections(): array
     {
         return ['postgres' => ['pgsql']];
     }
@@ -48,7 +48,7 @@ class TransactionAwareLockerTest extends TestCase
      */
     public function testSameKeysOnDifferentConnections(string $name): void
     {
-        DB::connection($name)->transaction(function () use ($name, &$passed): void {
+        DB::connection($name)->transaction(function () use ($name): void {
             DB::connection($name)
                 ->advisoryLocker()
                 ->forTransaction()

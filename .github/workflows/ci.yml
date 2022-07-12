@@ -1,0 +1,105 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - '3306:3306'
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: testing
+          MYSQL_PASSWORD: testing
+          MYSQL_ROOT_PASSWORD: testing
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=30s
+          --health-retries=5
+      postgres:
+        image: postgres:13.3
+        ports:
+          - '5432:5432'
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: testing
+          POSTGRES_PASSWORD: testing
+        options: >-
+          --health-cmd=pg_isready
+          --health-interval=10s
+          --health-timeout=30s
+          --health-retries=5
+
+    strategy:
+      matrix:
+        php: [8.1, '8.0']
+        lib:
+          - { laravel: ^10.0 }
+          - { laravel: ^9.0 }
+          - { laravel: ^8.0 }
+        exclude:
+          - { php: '8.0', lib: { laravel: ^10.0 } }
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+
+      - name: Set up MySQL
+        run: |
+          mysql \
+            --host=127.0.0.1 \
+            --port=3306 \
+            --user=root \
+            --password=testing <<< "
+              ALTER USER 'testing'@'%' IDENTIFIED WITH mysql_native_password BY 'testing';
+            "
+
+      - name: Adjust Package Versions
+        run: |
+          composer require "laravel/framework:${{ matrix.lib.laravel }}" --dev --no-update
+          composer update
+
+      - name: Prepare Coverage Directory
+        run: mkdir -p build/logs
+
+      - name: PHPStan
+        run: composer phpstan
+
+      - name: Test
+        run: composer test -- --coverage-clover build/logs/clover.xml
+        env:
+          PG_HOST: 127.0.0.1
+          MY_HOST: 127.0.0.1
+
+      - name: Upload Coverage
+        uses: nick-invision/retry@v2
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: 'true'
+          COVERALLS_FLAG_NAME: "laravel:${{ matrix.lib.laravel }} php:${{ matrix.php }}"
+        with:
+          timeout_minutes: 1
+          max_attempts: 3
+          command: |
+            composer global require php-coveralls/php-coveralls
+            php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+  coverage-aggregation:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate Coverage
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

@@ -44,7 +44,9 @@ class ReconnectionToleranceTest extends TestCase
 
         parent::setUp();
 
-        $this->events = $this->app->make(Dispatcher::class);
+        $events = $this->app->make(Dispatcher::class);
+        assert($events instanceof Dispatcher);
+        $this->events = $events;
     }
 
     protected function startListening(): void
@@ -86,8 +88,8 @@ class ReconnectionToleranceTest extends TestCase
 
         // Retries
         $this->assertSame([
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 0, 24), SHA1(?)) ELSE ? END, 0)',
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 0, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
         ], $this->queries);
     }
 
@@ -96,7 +98,7 @@ class ReconnectionToleranceTest extends TestCase
         DB::connection('mysql')
             ->advisoryLocker()
             ->persistent()
-            ->withLocking('foo', function () use (&$dispatched, &$passed): void {
+            ->withLocking('foo', function (): void {
                 $this->startListening();
 
                 try {
@@ -112,7 +114,7 @@ class ReconnectionToleranceTest extends TestCase
 
         // No retries
         $this->assertSame([
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 0, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
         ], $this->queries);
     }
 }

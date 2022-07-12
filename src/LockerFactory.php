@@ -26,7 +26,7 @@ class LockerFactory implements Contracts\LockerFactory
         if ($this->connection instanceof PostgresConnection) {
             return $this->transaction ??= new PostgresTransactionAwareLocker($this->connection);
         }
-        }
+
         // @codeCoverageIgnoreStart
         throw new UnsupportedDriverException('TransactionAwareLocker is not supported');
         // @codeCoverageIgnoreEnd

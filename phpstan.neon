@@ -1,3 +1,6 @@
+includes:
+		- extension.neon
+
 parameters:
 	ignoreErrors:
 		-
@@ -6,3 +9,5 @@ parameters:
 			    - src/AdvisoryLocks.php
 			    - src/Contracts/LockConflictException.php
 			    - src/Selector.php
+			    - tests/*.php
+

@@ -30,7 +30,7 @@ final class MySqlPersistentLocker implements PersistentLocker
 
     public function acquireOrFail(string $key, int $timeout = 0): PersistentLock
     {
-        $sql = "SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 0, 24), SHA1(?)) ELSE ? END, {$timeout})";
+        $sql = "SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, {$timeout})";
         $bindings = array_fill(0, 4, $key);
 
         $result = (new Selector($this->connection))

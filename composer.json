@@ -1,0 +1,60 @@
+{
+    "name": "mpyw/laravel-database-advisory-lock",
+    "description": "Advisory Locking Features of Postgres/MySQL on Laravel",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mpyw",
+            "email": "ryosuke_i_628@yahoo.co.jp"
+        }
+    ],
+    "keywords": ["laravel", "illuminate", "database", "advisory", "lock", "locking", "mutex"],
+    "autoload": {
+        "psr-4": {
+            "Mpyw\\LaravelDatabaseAdvisoryLock\\": "src/",
+            "Mpyw\\LaravelDatabaseAdvisoryLock\\PHPStan\\": "phpstan/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mpyw\\LaravelDatabaseAdvisoryLock\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "ext-pdo": "*",
+        "illuminate/support": "^8.0 || ^9.0",
+        "illuminate/database": "^8.0 || ^9.0",
+        "illuminate/contracts": "^8.0 || ^9.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "*",
+        "orchestra/testbench-core": "^6.6 || ^7.0",
+        "phpunit/phpunit": ">=9.5",
+        "phpstan/phpstan": ">=1.1",
+        "phpstan/extension-installer": ">=1.1",
+        "nunomaduro/larastan": "^1.0 || ^2.0",
+        "friendsofphp/php-cs-fixer": "^3.9"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "phpstan": "vendor/bin/phpstan analyse --level=9 src tests phpstan",
+        "cs": "vendor/bin/php-cs-fixer fix --dry-run",
+        "cs:fix": "vendor/bin/php-cs-fixer fix"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    }
+}

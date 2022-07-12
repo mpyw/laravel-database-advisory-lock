@@ -1,0 +1,5 @@
+services:
+    -
+        class: Mpyw\LaravelDatabaseAdvisoryLock\PHPStan\ConnectionClassExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension

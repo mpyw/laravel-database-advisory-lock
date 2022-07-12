@@ -1,0 +1,25 @@
+services:
+
+  php:
+    image: joseluisq/php-fpm:8.1
+    volumes:
+      - .:/code:cached
+    working_dir: /code
+    entrypoint: ['tail', '-f', '/dev/null']
+    command: []
+
+  mysql:
+    image: mysql:8.0
+    command: ['--default-authentication-plugin=mysql_native_password']
+    environment:
+      MYSQL_DATABASE: testing
+      MYSQL_USER: testing
+      MYSQL_PASSWORD: testing
+      MYSQL_ROOT_PASSWORD: testing
+
+  postgres:
+    image: postgres:13.0
+    environment:
+      POSTGRES_DB: testing
+      POSTGRES_USER: testing
+      POSTGRES_PASSWORD: testing

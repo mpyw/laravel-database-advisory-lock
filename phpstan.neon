@@ -1,0 +1,8 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#no value type specified in iterable type array#'
+			paths:
+			    - src/AdvisoryLocks.php
+			    - src/Contracts/LockConflictException.php
+			    - src/Selector.php

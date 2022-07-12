@@ -104,9 +104,6 @@ class PersistentLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connections
-     */
     public function testMySqlTimeout(): void
     {
         $name = 'mysql';

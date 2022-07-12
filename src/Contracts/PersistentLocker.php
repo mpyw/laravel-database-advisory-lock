@@ -25,13 +25,13 @@ interface PersistentLocker
     /**
      * @throws QueryException
      */
-    public function acquire(string $key, int $timeout = 0): ?PersistentLock;
+    public function tryLock(string $key, int $timeout = 0): ?PersistentLock;
 
     /**
      * @throws LockConflictException
      * @throws QueryException
      */
-    public function acquireOrFail(string $key, int $timeout = 0): PersistentLock;
+    public function lockOrFail(string $key, int $timeout = 0): PersistentLock;
 
     public function hasAny(): bool;
 }

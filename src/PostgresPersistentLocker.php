@@ -27,7 +27,7 @@ final class PostgresPersistentLocker implements PersistentLocker
         $this->locks = new WeakMap();
     }
 
-    public function acquireOrFail(string $key, int $timeout = 0): PersistentLock
+    public function lockOrFail(string $key, int $timeout = 0): PersistentLock
     {
         if ($timeout !== 0) {
             // @codeCoverageIgnoreStart

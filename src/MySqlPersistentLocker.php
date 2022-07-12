@@ -28,7 +28,7 @@ final class MySqlPersistentLocker implements PersistentLocker
         $this->locks = new WeakMap();
     }
 
-    public function acquireOrFail(string $key, int $timeout = 0): PersistentLock
+    public function lockOrFail(string $key, int $timeout = 0): PersistentLock
     {
         $sql = "SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, {$timeout})";
         $bindings = array_fill(0, 4, $key);

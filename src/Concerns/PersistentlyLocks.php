@@ -12,11 +12,11 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\PersistentLock;
  */
 trait PersistentlyLocks
 {
-    abstract public function acquireOrFail(string $key, int $timeout = 0): PersistentLock;
+    abstract public function lockOrFail(string $key, int $timeout = 0): PersistentLock;
 
     public function withLocking(string $key, callable $callback, int $timeout = 0): mixed
     {
-        $lock = $this->acquireOrFail($key, $timeout);
+        $lock = $this->lockOrFail($key, $timeout);
 
         try {
             return $callback();
@@ -25,10 +25,10 @@ trait PersistentlyLocks
         }
     }
 
-    public function acquire(string $key, int $timeout = 0): ?PersistentLock
+    public function tryLock(string $key, int $timeout = 0): ?PersistentLock
     {
         try {
-            return $this->acquire($key, $timeout);
+            return $this->tryLock($key, $timeout);
         } catch (LockConflictException) {
             return null;
         }

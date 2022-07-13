@@ -14,17 +14,6 @@ trait SessionLocks
 {
     abstract public function lockOrFail(string $key, int $timeout = 0): SessionLock;
 
-    public function withLocking(string $key, callable $callback, int $timeout = 0): mixed
-    {
-        $lock = $this->lockOrFail($key, $timeout);
-
-        try {
-            return $callback();
-        } finally {
-            $lock->release();
-        }
-    }
-
     public function tryLock(string $key, int $timeout = 0): ?SessionLock
     {
         try {

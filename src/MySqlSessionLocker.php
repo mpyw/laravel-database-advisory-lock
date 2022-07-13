@@ -46,6 +46,17 @@ final class MySqlSessionLocker implements SessionLocker
         return $lock;
     }
 
+    public function withLocking(string $key, callable $callback, int $timeout = 0): mixed
+    {
+        $lock = $this->lockOrFail($key, $timeout);
+
+        try {
+            return $callback($this->connection);
+        } finally {
+            $lock->release();
+        }
+    }
+
     public function hasAny(): bool
     {
         return $this->locks->count() > 0;

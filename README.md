@@ -43,20 +43,19 @@ return [
 <?php
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\ConnectionInterface;
 
 // Postgres/MySQL
 $result = DB::advisoryLocker()
     ->forSession()
-    ->withLocking('<key>', function () {
+    ->withLocking('<key>', function (ConnectionInterface $conn) {
         // critical section here
         return ...;
     });
 
 // Postgres only feature
-$result = DB::transaction(function () {
-    DB::advisoryLocker()
-        ->forTransaction()
-        ->lockOrFail('<key>');
+$result = DB::transaction(function (ConnectionInterface $conn) {
+    $conn->advisoryLocker()->forTransaction()->lockOrFail('<key>');
         
     // critical section here
     return ...;
@@ -65,7 +64,7 @@ $result = DB::transaction(function () {
 // MySQL only feature
 $result = DB::advisoryLocker()
     ->forSession()
-    ->withLocking('<key>', function () {
+    ->withLocking('<key>', function (ConnectionInterface $conn) {
         // critical section here
         return ...;
     }, timeout: 5);

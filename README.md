@@ -113,7 +113,7 @@ class PostgresConnection extends BasePostgresConnection
 ### Key Hashing Algorithm
 
 - Postgres advisory locking functions only accepts integer keys. So the driver converts key strings into 64-bit integers through `hashtext()` function.
-- MySQL advisory locking functions accepts string keys but their length are limited within 64 bites. When key strings exceed 64 bytes limit, the driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
+- MySQL advisory locking functions accepts string keys but their length are limited within 64 bytes. When key strings exceed 64 bytes limit, the driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
 - With either hashing algorithm, collisions can theoretically occur with very low probability.
 
 ### Transaction-Level Locks

@@ -13,7 +13,7 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock
+composer require mpyw/laravel-database-advisory-lock:^4.0
 ```
 
 ## Basic usage
@@ -71,11 +71,6 @@ $result = DB::advisoryLocker()
     }, timeout: 5);
 ```
 
-NOTE:
-- Postgres driver converts key strings into 64-bit integers through `hashtext()` function.
-- When key strings exceed 64 bytes limit, MySQL driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
-- With either hashing algorithm, collisions can theoretically occur with very low probability.
-
 ## Advanced Usage
 
 You can extend Connection classes with `AdvisoryLocks` trait by yourself.
@@ -113,3 +108,25 @@ class PostgresConnection extends BasePostgresConnection
     use AdvisoryLocks;
 }
 ```
+
+## Implementation Details
+
+### Key Hashing Algorithm
+
+- Postgres advisory locking functions only accepts integer keys. So the driver converts key strings into 64-bit integers through `hashtext()` function.
+- MySQL advisory locking functions accepts string keys but their length are limited within 64 bites. When key strings exceed 64 bytes limit, the driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
+- With either hashing algorithm, collisions can theoretically occur with very low probability.
+
+### Transaction-Level Locks
+
+- MySQL does not support native transaction-level advisory locking.
+- Postgres supports native transaction-level advisory locking.
+  - Locks can be acquired at any transaction scope.
+  - You do not need to and cannot manually release locks that have been acquired.
+
+### Session-Level Locks
+
+- MySQL supports session-level advisory locking.
+  - An optional wait timeout can be set.
+- Postgres supports session-level advisory locking.
+  - There was a problem where the automatic lock release algorithm did not work properly, but this has been fixed in version 4.0.0. See [#2](https://github.com/mpyw/laravel-database-advisory-lock/pull/2) for details.

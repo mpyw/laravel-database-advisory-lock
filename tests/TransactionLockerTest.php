@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
@@ -24,14 +25,14 @@ class TransactionLockerTest extends TestCase
     {
         $passed = false;
 
-        DB::connection($name)->transaction(function () use ($name, &$passed): void {
-            DB::connection($name)
+        DB::connection($name)->transaction(function (ConnectionInterface $conn) use ($name, &$passed): void {
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('foo');
 
-            DB::connection("{$name}2")->transaction(function () use ($name): void {
-                DB::connection("{$name}2")
+            DB::connection("{$name}2")->transaction(function (ConnectionInterface $conn): void {
+                $conn
                     ->advisoryLocker()
                     ->forTransaction()
                     ->lockOrFail('bar');
@@ -49,8 +50,8 @@ class TransactionLockerTest extends TestCase
      */
     public function testSameKeysOnDifferentConnections(string $name): void
     {
-        DB::connection($name)->transaction(function () use ($name): void {
-            DB::connection($name)
+        DB::connection($name)->transaction(function (ConnectionInterface $conn) use ($name): void {
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('foo');
@@ -58,8 +59,8 @@ class TransactionLockerTest extends TestCase
             $this->expectException(LockFailedException::class);
             $this->expectExceptionMessage('Failed to acquire lock: foo');
 
-            DB::connection("{$name}2")->transaction(function () use ($name): void {
-                DB::connection("{$name}2")
+            DB::connection("{$name}2")->transaction(function (ConnectionInterface $conn): void {
+                $conn
                     ->advisoryLocker()
                     ->forTransaction()
                     ->lockOrFail('foo');
@@ -77,13 +78,13 @@ class TransactionLockerTest extends TestCase
     {
         $passed = false;
 
-        DB::connection($name)->transaction(function () use ($name, &$passed): void {
-            DB::connection($name)
+        DB::connection($name)->transaction(function (ConnectionInterface $conn) use (&$passed): void {
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('foo');
 
-            DB::connection($name)
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('bar');
@@ -102,13 +103,13 @@ class TransactionLockerTest extends TestCase
     {
         $passed = false;
 
-        DB::connection($name)->transaction(function () use ($name, &$passed): void {
-            DB::connection($name)
+        DB::connection($name)->transaction(function (ConnectionInterface $conn) use (&$passed): void {
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('foo');
 
-            DB::connection($name)
+            $conn
                 ->advisoryLocker()
                 ->forTransaction()
                 ->lockOrFail('foo');

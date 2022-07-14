@@ -79,7 +79,7 @@ jobs:
         run: composer phpstan
 
       - name: Test
-        run: composer test -- --coverage-clover build/logs/clover.xml
+        run: composer test -- --testdox --coverage-clover build/logs/clover.xml
         env:
           PG_HOST: 127.0.0.1
           MY_HOST: 127.0.0.1

@@ -6,9 +6,6 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Concerns;
 
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 
-/**
- * @internal
- */
 trait TransactionalLocks
 {
     public function tryLock(string $key, int $timeout = 0): bool

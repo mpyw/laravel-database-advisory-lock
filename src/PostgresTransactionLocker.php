@@ -35,7 +35,7 @@ final class PostgresTransactionLocker implements TransactionLocker
         $sql = 'SELECT pg_try_advisory_xact_lock(hashtext(?))';
 
         $result = (new Selector($this->connection))
-            ->selectBool($sql, [$key], false);
+            ->selectBool($sql, [$key]);
 
         if (!$result) {
             throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);

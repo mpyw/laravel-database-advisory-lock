@@ -27,6 +27,11 @@ final class PostgresSessionLocker implements SessionLocker
         $this->locks = new WeakMap();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Use of this method is strongly discouraged in Postgres. Use withLocking() instead.
+     */
     public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
         if ($timeout !== 0) {
@@ -38,16 +43,33 @@ final class PostgresSessionLocker implements SessionLocker
         $sql = 'SELECT pg_try_advisory_lock(hashtext(?))';
 
         $result = (new Selector($this->connection))
-            ->selectBool($sql, [$key], false);
+            ->selectBool($sql, [$key]);
 
         if (!$result) {
             throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);
         }
 
+        // Register the lock when it succeeds.
         $lock = new PostgresSessionLock($this->connection, $this->locks, $key);
         $this->locks[$lock] = true;
 
         return $lock;
+    }
+
+    public function withLocking(string $key, callable $callback, int $timeout = 0): mixed
+    {
+        $lock = $this->lockOrFail($key, $timeout);
+
+        try {
+            // In Postgres, savepoints allow recovery from errors.
+            // This ensures release() on finally.
+            /** @noinspection PhpUnhandledExceptionInspection */
+            return $this->connection->transactionLevel() > 0
+                ? $this->connection->transaction(fn () => $callback($this->connection))
+                : $callback($this->connection);
+        } finally {
+            $lock->release();
+        }
     }
 
     public function hasAny(): bool

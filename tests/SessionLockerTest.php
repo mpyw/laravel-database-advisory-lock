@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Selector;
@@ -70,8 +71,8 @@ class SessionLockerTest extends TestCase
         DB::connection($name)
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function () use ($name, &$passed): void {
-                DB::connection($name)
+            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+                $conn
                     ->advisoryLocker()
                     ->forSession()
                     ->withLocking('bar', function () use (&$passed): void {
@@ -92,8 +93,8 @@ class SessionLockerTest extends TestCase
         DB::connection($name)
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function () use ($name, &$passed): void {
-                DB::connection($name)
+            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+                $conn
                     ->advisoryLocker()
                     ->forSession()
                     ->withLocking('foo', function () use (&$passed): void {
@@ -104,16 +105,15 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testMySqlTimeout(): void
+    public function testMysqlTimeout(): void
     {
-        $name = 'mysql';
         $passed = false;
 
-        DB::connection($name)
+        DB::connection('mysql')
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function () use ($name, &$passed): void {
-                DB::connection($name)
+            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+                $conn
                     ->advisoryLocker()
                     ->forSession()
                     ->withLocking('foo', function () use (&$passed): void {
@@ -124,22 +124,20 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testMySqlHashing(): void
+    public function testMysqlHashing(): void
     {
-        $name = 'mysql';
         $key = str_repeat('a', 65);
         $passed = false;
 
-        DB::connection($name)
+        DB::connection('mysql')
             ->advisoryLocker()
             ->forSession()
-            ->withLocking($key, function () use ($name, $key, &$passed): void {
+            ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
                 $this->assertTrue(
-                    (new Selector(DB::connection($name)))
+                    (new Selector($conn))
                         ->selectBool(
                             'SELECT IS_USED_LOCK(?)',
                             [substr($key, 0, 64 - 40) . sha1($key)],
-                            false,
                         ),
                 );
                 $passed = true;

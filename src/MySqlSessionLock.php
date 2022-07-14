@@ -30,14 +30,15 @@ final class MySqlSessionLock implements SessionLock
     public function release(): bool
     {
         if (!$this->released) {
+            // When key strings exceed 64 bytes limit,
+            // it takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
             $sql = 'SELECT RELEASE_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END)';
 
             $this->released = (new Selector($this->connection))
-                ->selectBool($sql, array_fill(0, 4, $this->key), false);
+                ->selectBool($sql, array_fill(0, 4, $this->key));
 
-            if ($this->released) {
-                $this->locks->offsetUnset($this);
-            }
+            // Clean up the lock when it succeeds.
+            $this->released && $this->locks->offsetUnset($this);
         }
 
         return $this->released;

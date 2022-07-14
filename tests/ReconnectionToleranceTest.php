@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -98,12 +99,12 @@ class ReconnectionToleranceTest extends TestCase
         DB::connection('mysql')
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function (): void {
+            ->withLocking('foo', function (ConnectionInterface $conn): void {
                 $this->startListening();
 
                 try {
                     // MySQL doesn't accept empty locks, so this will trigger QueryException
-                    DB::connection('mysql')
+                    $conn
                         ->advisoryLocker()
                         ->forSession()
                         ->withLocking('', fn () => null);

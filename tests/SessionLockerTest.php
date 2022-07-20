@@ -105,25 +105,6 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testMysqlTimeout(): void
-    {
-        $passed = false;
-
-        DB::connection('mysql')
-            ->advisoryLocker()
-            ->forSession()
-            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
-                $conn
-                    ->advisoryLocker()
-                    ->forSession()
-                    ->withLocking('foo', function () use (&$passed): void {
-                        $passed = true;
-                    });
-            });
-
-        $this->assertTrue($passed);
-    }
-
     public function testMysqlHashing(): void
     {
         $key = str_repeat('a', 65);
@@ -138,6 +119,28 @@ class SessionLockerTest extends TestCase
                         ->selectBool(
                             'SELECT IS_USED_LOCK(?)',
                             [substr($key, 0, 64 - 40) . sha1($key)],
+                        ),
+                );
+                $passed = true;
+            });
+
+        $this->assertTrue($passed);
+    }
+
+    public function testMysqlHashingMultibyte(): void
+    {
+        $key = str_repeat('あ', 65);
+        $passed = false;
+
+        DB::connection('mysql')
+            ->advisoryLocker()
+            ->forSession()
+            ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
+                $this->assertTrue(
+                    (new Selector($conn))
+                        ->selectBool(
+                            'SELECT IS_USED_LOCK(?)',
+                            [mb_substr($key, 0, 64 - 40) . sha1($key)],
                         ),
                 );
                 $passed = true;

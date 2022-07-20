@@ -89,8 +89,8 @@ class ReconnectionToleranceTest extends TestCase
 
         // Retries
         $this->assertSame([
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN CHAR_LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN CHAR_LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
         ], $this->queries);
     }
 
@@ -115,7 +115,7 @@ class ReconnectionToleranceTest extends TestCase
 
         // No retries
         $this->assertSame([
-            'SELECT GET_LOCK(CASE WHEN LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
+            'SELECT GET_LOCK(CASE WHEN CHAR_LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, 0)',
         ], $this->queries);
     }
 }

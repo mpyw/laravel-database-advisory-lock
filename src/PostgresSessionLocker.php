@@ -34,19 +34,23 @@ final class PostgresSessionLocker implements SessionLocker
      */
     public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
-        if ($timeout !== 0) {
-            // @codeCoverageIgnoreStart
-            throw new UnsupportedDriverException('Timeout feature is not supported');
-            // @codeCoverageIgnoreEnd
-        }
-
-        $sql = 'SELECT pg_try_advisory_lock(hashtext(?))';
+        // Negative timeout means infinite wait
+        $sql = match ($timeout <=> 0) {
+            -1 => "SELECT pg_advisory_lock(hashtext(?))::text = ''",
+            0 => 'SELECT pg_try_advisory_lock(hashtext(?))',
+            1 => throw new UnsupportedDriverException('Positive timeout is not supported'),
+        };
 
         $result = (new Selector($this->connection))
             ->selectBool($sql, [$key]);
 
         if (!$result) {
-            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);
+            throw new LockFailedException(
+                (string)$this->connection->getName(),
+                "Failed to acquire lock: {$key}",
+                $sql,
+                [$key],
+            );
         }
 
         // Register the lock when it succeeds.

@@ -39,7 +39,12 @@ final class MySqlSessionLocker implements SessionLocker
             ->selectBool($sql, $bindings);
 
         if (!$result) {
-            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, $bindings);
+            throw new LockFailedException(
+                (string)$this->connection->getName(),
+                "Failed to acquire lock: {$key}",
+                $sql,
+                $bindings,
+            );
         }
 
         // Register the lock when it succeeds.

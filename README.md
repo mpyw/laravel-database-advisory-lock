@@ -4,16 +4,16 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 
 ## Requirements
 
-| Package | Version                             | Mandatory |
-|:---|:------------------------------------|:---:|
-| PHP | <code>^8.0.2</code>                  | ✅ |
-| Laravel | <code>^8.0 &#124;&#124; ^9.0 &#124;&#124; ^10.0</code> | ✅ |
-| PHPStan | <code>&gt;=1.1</code>               | |
+| Package | Version                                                | Mandatory |
+|:--------|:-------------------------------------------------------|:---------:|
+| PHP     | <code>^8.0.2</code>                                    |     ✅     |
+| Laravel | <code>^8.0 &#124;&#124; ^9.0 &#124;&#124; ^10.0</code> |     ✅     |
+| PHPStan | <code>&gt;=1.1</code>                                  |           |
 
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock:^4.0
+composer require mpyw/laravel-database-advisory-lock:^4.1
 ```
 
 ## Basic usage

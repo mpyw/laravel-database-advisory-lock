@@ -45,7 +45,12 @@ final class PostgresSessionLocker implements SessionLocker
             ->selectBool($sql, [$key]);
 
         if (!$result) {
-            throw new LockFailedException("Failed to acquire lock: {$key}", $sql, [$key]);
+            throw new LockFailedException(
+                (string)$this->connection->getName(),
+                "Failed to acquire lock: {$key}",
+                $sql,
+                [$key],
+            );
         }
 
         // Register the lock when it succeeds.

@@ -142,10 +142,14 @@ class TransactionErrorRecoveryTest extends TableTestCase
         } catch (QueryException $e) {
             // Thrown from [*]
             $this->assertSame(
-                $e->getMessage(),
                 'SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  '
                 . 'current transaction is aborted, commands ignored until end of transaction block '
-                . '(SQL: insert into users(id) values(2))',
+                . (
+                    version_compare($this->app->version(), '10.x-dev', '>=')
+                        ? '(Connection: pgsql, SQL: insert into users(id) values(2))'
+                        : '(SQL: insert into users(id) values(2))'
+                ),
+                $e->getMessage(),
             );
         }
 

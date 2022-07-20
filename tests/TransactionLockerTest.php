@@ -8,10 +8,13 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
 use Throwable;
 
 class TransactionLockerTest extends TestCase
 {
+    use AcquiresLockInSeparateProcesses;
+
     public function connections(): array
     {
         return ['postgres' => ['pgsql']];
@@ -133,5 +136,38 @@ class TransactionLockerTest extends TestCase
             ->advisoryLocker()
             ->forTransaction()
             ->lockOrFail('foo');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testFinitePostgresTimeoutInvalid(): void
+    {
+        $this->expectException(UnsupportedDriverException::class);
+        $this->expectExceptionMessage('Positive timeout is not supported');
+
+        DB::connection('pgsql')->transaction(function (ConnectionInterface $conn): void {
+            $conn->advisoryLocker()->forTransaction()->lockOrFail('foo', 1);
+        });
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testInfinitePostgresTimeoutSuccess(): void
+    {
+        $proc = self::lockPostgresAsync('foo', 2);
+        sleep(1);
+
+        try {
+            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+                return $conn->advisoryLocker()->forTransaction()->tryLock('foo', -1);
+            });
+
+            $this->assertSame(0, $proc->wait());
+            $this->assertTrue($result);
+        } finally {
+            $proc->wait();
+        }
     }
 }

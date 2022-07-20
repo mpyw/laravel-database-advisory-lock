@@ -45,7 +45,7 @@ return [
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\ConnectionInterface;
 
-// Postgres/MySQL
+// Postgres/MySQL: Session-Level Locking (no wait)
 $result = DB::advisoryLocker()
     ->forSession()
     ->withLocking('<key>', function (ConnectionInterface $conn) {
@@ -53,7 +53,7 @@ $result = DB::advisoryLocker()
         return ...;
     });
 
-// Postgres only feature
+// Postgres only feature: Transaction-Level Locking (no wait)
 $result = DB::transaction(function (ConnectionInterface $conn) {
     $conn->advisoryLocker()->forTransaction()->lockOrFail('<key>');
         
@@ -61,13 +61,21 @@ $result = DB::transaction(function (ConnectionInterface $conn) {
     return ...;
 });
 
-// MySQL only feature
+// MySQL only feature: Session-Level Locking with timeout (waits for 5 seconds or fails)
 $result = DB::advisoryLocker()
     ->forSession()
     ->withLocking('<key>', function (ConnectionInterface $conn) {
         // critical section here
         return ...;
     }, timeout: 5);
+
+// Postgres/MySQL: Session-Level Locking with infinite wait
+$result = DB::advisoryLocker()
+    ->forSession()
+    ->withLocking('<key>', function (ConnectionInterface $conn) {
+        // critical section here
+        return ...;
+    }, timeout: -1);
 ```
 
 ## Advanced Usage
@@ -112,20 +120,40 @@ class PostgresConnection extends BasePostgresConnection
 
 ### Key Hashing Algorithm
 
+```sql
+-- Postgres: int8
+hashtext('<key>')
+```
+
+```sql
+-- MySQL: varchar(64)
+CASE WHEN CHAR_LENGTH('<key>') > 64
+THEN CONCAT(SUBSTR('<key>', 1, 24), SHA1('<key>'))
+ELSE '<key>'
+END
+```
+
 - Postgres advisory locking functions only accepts integer keys. So the driver converts key strings into 64-bit integers through `hashtext()` function.
-- MySQL advisory locking functions accepts string keys but their length are limited within 64 bytes. When key strings exceed 64 bytes limit, the driver takes first 24 bytes from them and appends 40 bytes `sha1()` hashes.
+- MySQL advisory locking functions accepts string keys but their length are limited within 64 chars. When key strings exceed 64 chars limit, the driver takes first 24 chars from them and appends 40 chars `sha1()` hashes.
 - With either hashing algorithm, collisions can theoretically occur with very low probability.
 
-### Transaction-Level Locks
+### Locking Methods
 
-- MySQL does not support native transaction-level advisory locking.
-- Postgres supports native transaction-level advisory locking.
-  - Locks can be acquired at any transaction scope.
+|                           | Postgres | MySQL |
+|:--------------------------|:---------|:------|
+| Session-Level Locking     | ✅        | ✅     |
+| Transaction-Level Locking | ✅        | ❌     |
+
+- Session-Level locks can be acquired anywhere.
+  - They can be released manually or automatically through a destructor.
+  - For Postgres, there was a problem where the automatic lock release algorithm did not work properly, but this has been fixed in version 4.0.0. See [#2](https://github.com/mpyw/laravel-database-advisory-lock/pull/2) for details.
+- Transaction-Level locks can be acquired within a transaction.
   - You do not need to and cannot manually release locks that have been acquired.
 
-### Session-Level Locks
+### Timeout Values
 
-- MySQL supports session-level advisory locking.
-  - An optional wait timeout can be set.
-- Postgres supports session-level advisory locking.
-  - There was a problem where the automatic lock release algorithm did not work properly, but this has been fixed in version 4.0.0. See [#2](https://github.com/mpyw/laravel-database-advisory-lock/pull/2) for details.
+|                                            | Postgres | MySQL |
+|:-------------------------------------------|:---------|:------|
+| Timeout: `0` (default; immediate, no wait) | ✅        | ✅     |
+| Timeout: `positive-int`                    | ❌        | ✅     |
+| Timeout: `negative-int` (infinite wait)    | ✅        | ✅     |

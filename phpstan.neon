@@ -8,5 +8,5 @@ parameters:
             paths:
                 - src/AdvisoryLocks.php
                 - src/Contracts/LockFailedException.php
-                - src/Selector.php
+                - src/Utilities/Selector.php
                 - tests/*.php

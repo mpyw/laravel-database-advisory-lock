@@ -21,6 +21,10 @@
     </filter>
     <php>
         <env name="PG_HOST" value="postgres" />
+        <env name="PG_PORT" value="5432" />
         <env name="MY_HOST" value="mysql" />
+        <env name="MY_PORT" value="3306" />
+        <env name="MA_HOST" value="mariadb" />
+        <env name="MA_PORT" value="3306" />
     </php>
 </phpunit>

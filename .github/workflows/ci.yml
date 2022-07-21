@@ -21,6 +21,20 @@ jobs:
           --health-interval=10s
           --health-timeout=30s
           --health-retries=5
+      mariadb:
+        image: mariadb:10.0
+        ports:
+          - '3307:3306'
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: testing
+          MYSQL_PASSWORD: testing
+          MYSQL_ROOT_PASSWORD: testing
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=30s
+          --health-retries=5
       postgres:
         image: postgres:13.3
         ports:
@@ -83,6 +97,8 @@ jobs:
         env:
           PG_HOST: 127.0.0.1
           MY_HOST: 127.0.0.1
+          MA_HOST: 127.0.0.1
+          MA_PORT: '3307'
 
       - name: Upload Coverage
         uses: nick-invision/retry@v2

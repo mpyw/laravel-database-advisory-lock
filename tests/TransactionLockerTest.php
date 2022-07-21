@@ -14,13 +14,8 @@ class TransactionLockerTest extends TestCase
 {
     use AcquiresLockInSeparateProcesses;
 
-    public function connections(): array
-    {
-        return ['postgres' => ['pgsql']];
-    }
-
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
     public function testDifferentKeysOnDifferentConnections(string $name): void
@@ -47,7 +42,7 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
     public function testSameKeysOnDifferentConnections(string $name): void
@@ -73,7 +68,7 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
     public function testDifferentKeysOnSameConnections(string $name): void
@@ -98,7 +93,7 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
     public function testSameKeysOnSameConnections(string $name): void
@@ -123,7 +118,7 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
     public function testWithoutTransactions(string $name): void
@@ -138,15 +133,16 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
-    public function testFinitePostgresTimeoutSuccess(): void
+    public function testFiniteTimeoutSuccess(string $name): void
     {
-        $proc = self::lockPostgresAsync('foo', 2);
+        $proc = self::lockAsync($name, 'foo', 2);
         sleep(1);
 
         try {
-            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+            $result = DB::connection($name)->transaction(function (ConnectionInterface $conn) {
                 return $conn->advisoryLocker()->forTransaction()->tryLock('foo', 3);
             });
 
@@ -158,16 +154,17 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
-    public function testFinitePostgresTimeoutSuccessConsecutive(): void
+    public function testFinitePostgresTimeoutSuccessConsecutive(string $name): void
     {
-        $proc1 = self::lockPostgresAsync('foo', 5);
-        $proc2 = self::lockPostgresAsync('baz', 5);
+        $proc1 = self::lockAsync($name, 'foo', 5);
+        $proc2 = self::lockAsync($name, 'baz', 5);
         sleep(1);
 
         try {
-            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+            $result = DB::connection($name)->transaction(function (ConnectionInterface $conn) {
                 return [
                     $conn->advisoryLocker()->forTransaction()->tryLock('foo', 1),
                     $conn->advisoryLocker()->forTransaction()->tryLock('bar', 1),
@@ -185,15 +182,16 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
-    public function testFinitePostgresTimeoutExceeded(): void
+    public function testFinitePostgresTimeoutExceeded(string $name): void
     {
-        $proc = self::lockPostgresAsync('foo', 3);
+        $proc = self::lockAsync($name, 'foo', 3);
         sleep(1);
 
         try {
-            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+            $result = DB::connection($name)->transaction(function (ConnectionInterface $conn) {
                 return $conn->advisoryLocker()->forTransaction()->tryLock('foo', 1);
             });
 
@@ -205,15 +203,16 @@ class TransactionLockerTest extends TestCase
     }
 
     /**
+     * @dataProvider connectionsPostgres
      * @throws Throwable
      */
-    public function testInfinitePostgresTimeoutSuccess(): void
+    public function testInfinitePostgresTimeoutSuccess(string $name): void
     {
-        $proc = self::lockPostgresAsync('foo', 2);
+        $proc = self::lockAsync($name, 'foo', 2);
         sleep(1);
 
         try {
-            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+            $result = DB::connection($name)->transaction(function (ConnectionInterface $conn) {
                 return $conn->advisoryLocker()->forTransaction()->tryLock('foo', -1);
             });
 

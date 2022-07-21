@@ -160,6 +160,33 @@ class TransactionLockerTest extends TestCase
     /**
      * @throws Throwable
      */
+    public function testFinitePostgresTimeoutSuccessConsecutive(): void
+    {
+        $proc1 = self::lockPostgresAsync('foo', 5);
+        $proc2 = self::lockPostgresAsync('baz', 5);
+        sleep(1);
+
+        try {
+            $result = DB::connection('pgsql')->transaction(function (ConnectionInterface $conn) {
+                return [
+                    $conn->advisoryLocker()->forTransaction()->tryLock('foo', 1),
+                    $conn->advisoryLocker()->forTransaction()->tryLock('bar', 1),
+                    $conn->advisoryLocker()->forTransaction()->tryLock('baz', 1),
+                    $conn->advisoryLocker()->forTransaction()->tryLock('qux', 1),
+                ];
+            });
+            $this->assertSame(0, $proc1->wait());
+            $this->assertSame(0, $proc2->wait());
+            $this->assertSame([false, true, false, true], $result);
+        } finally {
+            $proc1->wait();
+            $proc2->wait();
+        }
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testFinitePostgresTimeoutExceeded(): void
     {
         $proc = self::lockPostgresAsync('foo', 3);

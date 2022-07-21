@@ -172,6 +172,30 @@ class SessionLockerTest extends TestCase
         }
     }
 
+    public function testFinitePostgresTimeoutSuccessConsecutive(): void
+    {
+        $proc1 = self::lockPostgresAsync('foo', 5);
+        $proc2 = self::lockPostgresAsync('baz', 5);
+        sleep(1);
+
+        try {
+            $conn = DB::connection('pgsql');
+            $results = [
+                $conn->advisoryLocker()->forSession()->tryLock('foo', 1),
+                $conn->advisoryLocker()->forSession()->tryLock('bar', 1),
+                $conn->advisoryLocker()->forSession()->tryLock('baz', 1),
+                $conn->advisoryLocker()->forSession()->tryLock('qux', 1),
+            ];
+            $result_booleans = array_map(fn ($result) => $result !== null, $results);
+            $this->assertSame(0, $proc1->wait());
+            $this->assertSame(0, $proc2->wait());
+            $this->assertSame([false, true, false, true], $result_booleans);
+        } finally {
+            $proc1->wait();
+            $proc2->wait();
+        }
+    }
+
     /**
      * @dataProvider connections
      */

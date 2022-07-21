@@ -46,7 +46,7 @@ final class PostgresSessionLock implements SessionLock, TransactionTerminationLi
                 // after the transaction is terminated or rewinding to a savepoint.
                 self::causedByTransactionAbort($e)
                     ? $this->hub?->registerOnceListener($this)
-                    : throw $e;
+                    : throw $e; // @codeCoverageIgnore
             }
 
             // Clean up the lock when it succeeds.

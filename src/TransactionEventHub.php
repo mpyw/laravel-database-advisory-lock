@@ -106,8 +106,10 @@ final class TransactionEventHub
             foreach ($savedListeners as $listener) {
                 try {
                     $listener->onTransactionTerminated($event);
+                    // @codeCoverageIgnoreStart
                 } catch (Throwable) {
                 }
+                // @codeCoverageIgnoreEnd
             }
         }
     }

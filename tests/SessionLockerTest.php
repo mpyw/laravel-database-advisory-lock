@@ -118,8 +118,8 @@ class SessionLockerTest extends TestCase
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
                 $this->assertTrue(
-                    (new Selector($conn))
-                        ->selectBool(
+                    (bool)(new Selector($conn))
+                        ->select(
                             'SELECT IS_USED_LOCK(?)',
                             [substr($key, 0, 64 - 40) . sha1($key)],
                         ),
@@ -140,8 +140,8 @@ class SessionLockerTest extends TestCase
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
                 $this->assertTrue(
-                    (new Selector($conn))
-                        ->selectBool(
+                    (bool)(new Selector($conn))
+                        ->select(
                             'SELECT IS_USED_LOCK(?)',
                             [mb_substr($key, 0, 64 - 40) . sha1($key)],
                         ),

@@ -33,8 +33,8 @@ final class PostgresTransactionLocker implements TransactionLocker
             1 => throw new UnsupportedDriverException('Positive timeout is not supported'),
         };
 
-        $result = (new Selector($this->connection))
-            ->selectBool($sql, [$key]);
+        $result = (bool)(new Selector($this->connection))
+            ->select($sql, [$key]);
 
         if (!$result) {
             throw new LockFailedException(

@@ -35,8 +35,8 @@ final class MySqlSessionLocker implements SessionLocker
         $sql = "SELECT GET_LOCK(CASE WHEN CHAR_LENGTH(?) > 64 THEN CONCAT(SUBSTR(?, 1, 24), SHA1(?)) ELSE ? END, {$timeout})";
         $bindings = array_fill(0, 4, $key);
 
-        $result = (new Selector($this->connection))
-            ->selectBool($sql, $bindings);
+        $result = (bool)(new Selector($this->connection))
+            ->select($sql, $bindings);
 
         if (!$result) {
             throw new LockFailedException(

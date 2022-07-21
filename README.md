@@ -13,7 +13,7 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock:^4.1
+composer require mpyw/laravel-database-advisory-lock:^4.2
 ```
 
 ## Basic usage
@@ -45,37 +45,32 @@ return [
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\ConnectionInterface;
 
-// Postgres/MySQL: Session-Level Locking (no wait)
+// Postgres/MySQL: Session-Level Locking
 $result = DB::advisoryLocker()
     ->forSession()
     ->withLocking('<key>', function (ConnectionInterface $conn) {
         // critical section here
         return ...;
-    });
+    }); // no wait
+$result = DB::advisoryLocker()
+    ->forSession()
+    ->withLocking('<key>', function (ConnectionInterface $conn) {
+        // critical section here
+        return ...;
+    }, timeout: 5); // wait for 5 seconds or fail
+$result = DB::advisoryLocker()
+    ->forSession()
+    ->withLocking('<key>', function (ConnectionInterface $conn) {
+        // critical section here
+        return ...;
+    }, timeout: -1); // infinite wait
 
 // Postgres only feature: Transaction-Level Locking (no wait)
 $result = DB::transaction(function (ConnectionInterface $conn) {
     $conn->advisoryLocker()->forTransaction()->lockOrFail('<key>');
-        
     // critical section here
     return ...;
 });
-
-// MySQL only feature: Session-Level Locking with timeout (waits for 5 seconds or fails)
-$result = DB::advisoryLocker()
-    ->forSession()
-    ->withLocking('<key>', function (ConnectionInterface $conn) {
-        // critical section here
-        return ...;
-    }, timeout: 5);
-
-// Postgres/MySQL: Session-Level Locking with infinite wait
-$result = DB::advisoryLocker()
-    ->forSession()
-    ->withLocking('<key>', function (ConnectionInterface $conn) {
-        // critical section here
-        return ...;
-    }, timeout: -1);
 ```
 
 ## Advanced Usage

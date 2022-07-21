@@ -7,6 +7,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock;
 use Illuminate\Database\MySqlConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\ReleasesWhenDestructed;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use WeakMap;
 
 use function array_fill;

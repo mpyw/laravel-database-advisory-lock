@@ -10,6 +10,7 @@ use Illuminate\Database\PostgresConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\ReleasesWhenDestructed;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionTerminationListener;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use PDOException;
 use WeakMap;
 

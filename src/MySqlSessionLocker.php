@@ -9,6 +9,7 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\SessionLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use WeakMap;
 
 use function array_fill;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Mpyw\LaravelDatabaseAdvisoryLock;
+namespace Mpyw\LaravelDatabaseAdvisoryLock\Utilities;
 
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\QueryException;

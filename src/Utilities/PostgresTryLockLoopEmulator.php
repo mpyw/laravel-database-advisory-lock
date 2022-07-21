@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Utilities;
 
-use Illuminate\Database\Connection;
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\PostgresConnection;
 use Illuminate\Database\QueryException;
-use LogicException;
 
 use function preg_replace;
-use function str_starts_with;
 
 /**
  * class PostgresTryLockLoopEmulator
@@ -19,18 +16,9 @@ use function str_starts_with;
  */
 final class PostgresTryLockLoopEmulator
 {
-    private Connection $connection;
-
     public function __construct(
-        ConnectionInterface $connection,
+        private PostgresConnection $connection,
     ) {
-        if (!$connection instanceof Connection) {
-            // @codeCoverageIgnoreStart
-            throw new LogicException('Procedure features are not available.');
-            // @codeCoverageIgnoreEnd
-        }
-
-        $this->connection = $connection;
     }
 
     /**
@@ -41,42 +29,12 @@ final class PostgresTryLockLoopEmulator
      */
     public function performTryLockLoop(string $key, int $timeout, bool $forTransaction = false): bool
     {
-        try {
-            // Binding parameters to procedures is only allowed when PDOStatement emulation is enabled.
-            PDOStatementEmulator::emulated(
-                $this->connection->getPdo(),
-                fn () => $this->performRawTryLockLoop($key, $timeout, $forTransaction),
-            );
-            // @codeCoverageIgnoreStart
-            throw new LogicException('Unreachable here');
-            // @codeCoverageIgnoreEnd
-        } catch (QueryException $e) {
-            // Handle user level exceptions
-            if ($e->getCode() === 'P0001') {
-                $prefix = 'ERROR:  LaravelDatabaseAdvisoryLock';
-                $message = (string)($e->errorInfo[2] ?? '');
-                if (str_starts_with($message, "{$prefix}: Lock acquired successfully")) {
-                    return true;
-                }
-                if (str_starts_with($message, "{$prefix}: Lock timeout")) {
-                    return false;
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    /**
-     * Generates SQL to emulate time-limited lock acquisition.
-     * This query will always throw QueryException.
-     *
-     * @phpstan-param positive-int $timeout
-     * @throws QueryException
-     */
-    public function performRawTryLockLoop(string $key, int $timeout, bool $forTransaction): void
-    {
-        $this->connection->select($this->sql($timeout, $forTransaction), [$key]);
+        // Binding parameters to procedures is only allowed when PDOStatement emulation is enabled.
+        return PDOStatementEmulator::emulated(
+            $this->connection->getPdo(),
+            fn () => (bool)(new Selector($this->connection))
+                ->select($this->sql($timeout, $forTransaction), [$key]),
+        );
     }
 
     /**
@@ -89,7 +47,10 @@ final class PostgresTryLockLoopEmulator
         $suffix = $forTransaction ? '_xact' : '';
 
         $sql = <<<EOD
-            DO $$
+            CREATE OR REPLACE FUNCTION
+                pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(key text, timeout interval)
+            RETURNS boolean
+            AS $$
                 DECLARE
                     result boolean;
                     start timestamp with time zone;
@@ -97,18 +58,20 @@ final class PostgresTryLockLoopEmulator
                 BEGIN
                     start := clock_timestamp();
                     LOOP
-                        SELECT pg_try_advisory{$suffix}_lock(hashtext(?)) INTO result;
+                        SELECT pg_try_advisory{$suffix}_lock(hashtext(key)) INTO result;
                         IF result THEN
-                            RAISE 'LaravelDatabaseAdvisoryLock: Lock acquired successfully';
+                            RETURN true;
                         END IF;
                         now := clock_timestamp();
-                        IF now - start > interval '{$timeout} seconds' THEN
-                            RAISE 'LaravelDatabaseAdvisoryLock: Lock timeout';
+                        IF now - start > timeout THEN
+                            RETURN false;
                         END IF;
                         PERFORM pg_sleep(0.5);
                     END LOOP;
                 END
-            $$;
+            $$
+            LANGUAGE plpgsql;
+            SELECT pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(?, interval '{$timeout} seconds');
         EOD;
 
         return (string)preg_replace('/\s++/', ' ', $sql);

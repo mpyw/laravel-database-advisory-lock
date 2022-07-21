@@ -13,7 +13,7 @@ Advisory Locking Features of Postgres/MySQL on Laravel
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock:^4.2
+composer require mpyw/laravel-database-advisory-lock:^4.2.1
 ```
 
 ## Basic usage
@@ -153,4 +153,4 @@ END
 | Timeout: `positive-int`                    | ✅<br>(Emulated)  |   ✅    |
 | Timeout: `negative-int` (infinite wait)    |        ✅         |   ✅    |
 
-- Postgres does not natively support waiting for a finite specific amount of time, but this is emulated by looping through an anonymous procedure.
+- Postgres does not natively support waiting for a finite specific amount of time, but this is emulated by looping through a temporary function.

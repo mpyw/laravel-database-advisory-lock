@@ -40,7 +40,7 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
-        "phpstan": "vendor/bin/phpstan analyse --level=9 src tests phpstan",
+        "phpstan": "vendor/bin/phpstan analyse --level=9 --memory-limit=2G src tests phpstan",
         "cs": "vendor/bin/php-cs-fixer fix --dry-run",
         "cs:fix": "vendor/bin/php-cs-fixer fix"
     },

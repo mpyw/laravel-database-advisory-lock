@@ -9,7 +9,8 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\SessionLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTryLockLoopEmulator;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use WeakMap;
 
 final class PostgresSessionLocker implements SessionLocker
@@ -34,15 +35,21 @@ final class PostgresSessionLocker implements SessionLocker
      */
     public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
-        // Negative timeout means infinite wait
-        $sql = match ($timeout <=> 0) {
-            -1 => "SELECT pg_advisory_lock(hashtext(?))::text = ''",
-            0 => 'SELECT pg_try_advisory_lock(hashtext(?))',
-            1 => throw new UnsupportedDriverException('Positive timeout is not supported'),
-        };
+        if ($timeout > 0) {
+            // Positive timeout can be emulated through repeating sleep and retry
+            $emulator = new PostgresTryLockLoopEmulator($this->connection);
+            $sql = $emulator->sql($timeout, false);
+            $result = $emulator->performTryLockLoop($key, $timeout);
+        } else {
+            // Negative timeout means infinite wait
+            // Zero timeout means no wait
+            $sql = $timeout < 0
+                ? "SELECT pg_advisory_lock(hashtext(?))::text = ''"
+                : 'SELECT pg_try_advisory_lock(hashtext(?))';
 
-        $result = (new Selector($this->connection))
-            ->selectBool($sql, [$key]);
+            $selector = new Selector($this->connection);
+            $result = (bool)$selector->select($sql, [$key]);
+        }
 
         if (!$result) {
             throw new LockFailedException(

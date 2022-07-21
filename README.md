@@ -139,10 +139,10 @@ END
 
 ### Locking Methods
 
-|                           | Postgres | MySQL |
-|:--------------------------|:---------|:------|
-| Session-Level Locking     | ✅        | ✅     |
-| Transaction-Level Locking | ✅        | ❌     |
+|                           | Postgres  | MySQL  |
+|:--------------------------|:---------:|:------:|
+| Session-Level Locking     |     ✅     |   ✅    |
+| Transaction-Level Locking |     ✅     |   ❌    |
 
 - Session-Level locks can be acquired anywhere.
   - They can be released manually or automatically through a destructor.
@@ -152,8 +152,10 @@ END
 
 ### Timeout Values
 
-|                                            | Postgres | MySQL |
-|:-------------------------------------------|:---------|:------|
-| Timeout: `0` (default; immediate, no wait) | ✅        | ✅     |
-| Timeout: `positive-int`                    | ❌        | ✅     |
-| Timeout: `negative-int` (infinite wait)    | ✅        | ✅     |
+|                                            |     Postgres     | MySQL  |
+|:-------------------------------------------|:----------------:|:------:|
+| Timeout: `0` (default; immediate, no wait) |        ✅         |   ✅    |
+| Timeout: `positive-int`                    | ✅<br>(Emulated)  |   ✅    |
+| Timeout: `negative-int` (infinite wait)    |        ✅         |   ✅    |
+
+- Postgres does not natively support waiting for a finite specific amount of time, but this is emulated by looping through an anonymous procedure.

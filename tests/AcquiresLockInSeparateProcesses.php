@@ -4,10 +4,23 @@ declare(strict_types=1);
 
 namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 
+use LogicException;
 use Symfony\Component\Process\Process;
 
 trait AcquiresLockInSeparateProcesses
 {
+    private static function lockAsync(string $driver, string $key, int $sleep): Process
+    {
+        if ($driver === 'mysql') {
+            return self::lockMysqlAsync($key, $sleep);
+        }
+        if ($driver === 'pgsql') {
+            return self::lockPostgresAsync($key, $sleep);
+        }
+
+        throw new LogicException('Unsupported driver');
+    }
+
     private static function lockMysqlAsync(string $key, int $sleep): Process
     {
         $host = config('database.connections.mysql.host');

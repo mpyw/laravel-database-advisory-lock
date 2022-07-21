@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Mpyw\LaravelDatabaseAdvisoryLock;
+namespace Mpyw\LaravelDatabaseAdvisoryLock\Utilities;
 
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\QueryException;
+
+use function array_shift;
 
 /**
  * class Selector
@@ -22,19 +24,18 @@ final class Selector
     }
 
     /**
-     * Run query to get a boolean from the result.
-     * Illegal values are regarded as false.
+     * Run query to get a single value from the result.
      * QueryException may be thrown on connection-level errors.
      *
      * @throws QueryException
      */
-    public function selectBool(string $sql, array $bindings): bool
+    public function select(string $sql, array $bindings): mixed
     {
         // Always pass false to $useReadPdo
-        return (bool)current(
-            (array)$this
-                ->connection
-                ->selectOne($sql, $bindings, false),
-        );
+        $row = (array)$this
+            ->connection
+            ->selectOne($sql, $bindings, false);
+
+        return array_shift($row);
     }
 }

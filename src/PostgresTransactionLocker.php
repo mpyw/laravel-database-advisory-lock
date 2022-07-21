@@ -9,7 +9,8 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\TransactionalLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionLocker;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTryLockLoopEmulator;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 
 final class PostgresTransactionLocker implements TransactionLocker
 {
@@ -26,15 +27,21 @@ final class PostgresTransactionLocker implements TransactionLocker
             throw new InvalidTransactionLevelException('There are no transactions');
         }
 
-        // Negative timeout means infinite wait
-        $sql = match ($timeout <=> 0) {
-            -1 => "SELECT pg_advisory_xact_lock(hashtext(?))::text = ''",
-            0 => 'SELECT pg_try_advisory_xact_lock(hashtext(?))',
-            1 => throw new UnsupportedDriverException('Positive timeout is not supported'),
-        };
+        if ($timeout > 0) {
+            // Positive timeout can be emulated through repeating sleep and retry
+            $emulator = new PostgresTryLockLoopEmulator($this->connection);
+            $sql = $emulator->sql($timeout, false);
+            $result = $emulator->performTryLockLoop($key, $timeout, true);
+        } else {
+            // Negative timeout means infinite wait
+            // Zero timeout means no wait
+            $sql = $timeout < 0
+                ? "SELECT pg_advisory_xact_lock(hashtext(?))::text = ''"
+                : 'SELECT pg_try_advisory_xact_lock(hashtext(?))';
 
-        $result = (new Selector($this->connection))
-            ->selectBool($sql, [$key]);
+            $selector = new Selector($this->connection);
+            $result = (bool)$selector->select($sql, [$key]);
+        }
 
         if (!$result) {
             throw new LockFailedException(

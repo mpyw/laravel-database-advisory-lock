@@ -7,8 +7,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedDriverException;
-use Mpyw\LaravelDatabaseAdvisoryLock\Selector;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 
 class SessionLockerTest extends TestCase
 {
@@ -118,8 +117,8 @@ class SessionLockerTest extends TestCase
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
                 $this->assertTrue(
-                    (new Selector($conn))
-                        ->selectBool(
+                    (bool)(new Selector($conn))
+                        ->select(
                             'SELECT IS_USED_LOCK(?)',
                             [substr($key, 0, 64 - 40) . sha1($key)],
                         ),
@@ -140,8 +139,8 @@ class SessionLockerTest extends TestCase
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
                 $this->assertTrue(
-                    (new Selector($conn))
-                        ->selectBool(
+                    (bool)(new Selector($conn))
+                        ->select(
                             'SELECT IS_USED_LOCK(?)',
                             [mb_substr($key, 0, 64 - 40) . sha1($key)],
                         ),
@@ -152,98 +151,64 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testFiniteMysqlTimeoutSuccess(): void
+    /**
+     * @dataProvider connections
+     */
+    public function testFiniteTimeoutSuccess(string $name): void
     {
-        $passed = false;
-
-        $proc = self::lockMysqlAsync('foo', 2);
+        $proc = self::lockAsync($name, 'foo', 2);
         sleep(1);
 
         try {
-            DB::connection('mysql')
+            $result = DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()
-                ->withLocking('foo', function () use (&$passed): void {
-                    $passed = true;
-                }, 3);
+                ->tryLock('foo', 3);
 
             $this->assertSame(0, $proc->wait());
-            $this->assertTrue($passed);
+            $this->assertNotNull($result);
         } finally {
             $proc->wait();
         }
     }
 
-    public function testFiniteMysqlTimeoutExceeded(): void
+    /**
+     * @dataProvider connections
+     */
+    public function testFiniteTimeoutExceeded(string $name): void
     {
-        $proc = self::lockMysqlAsync('foo', 3);
+        $proc = self::lockAsync($name, 'foo', 3);
         sleep(1);
 
         try {
-            $this->expectException(LockFailedException::class);
-            $this->expectExceptionMessage('Failed to acquire lock: foo');
-
-            DB::connection('mysql')
+            $result = DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()
-                ->withLocking('foo', function (): void {
-                }, 1);
+                ->tryLock('foo', 1);
+
+            $this->assertSame(0, $proc->wait());
+            $this->assertNull($result);
         } finally {
             $proc->wait();
         }
     }
 
-    public function testInfiniteMysqlTimeoutSuccess(): void
+    /**
+     * @dataProvider connections
+     */
+    public function testInfiniteTimeoutSuccess(string $name): void
     {
-        $passed = false;
-
-        $proc = self::lockMysqlAsync('foo', 2);
+        $proc = self::lockAsync($name, 'foo', 2);
         sleep(1);
 
         try {
-            DB::connection('mysql')
+            $result = DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()
-                ->withLocking('foo', function () use (&$passed): void {
-                    $passed = true;
-                }, -1);
+                ->tryLock('foo', -1);
 
             $this->assertSame(0, $proc->wait());
-            $this->assertTrue($passed);
-        } finally {
-            $proc->wait();
-        }
-    }
-
-    public function testFinitePostgresTimeoutInvalid(): void
-    {
-        $this->expectException(UnsupportedDriverException::class);
-        $this->expectExceptionMessage('Positive timeout is not supported');
-
-        DB::connection('pgsql')
-            ->advisoryLocker()
-            ->forSession()
-            ->withLocking('foo', function (): void {
-            }, 1);
-    }
-
-    public function testInfinitePostgresTimeoutSuccess(): void
-    {
-        $passed = false;
-
-        $proc = self::lockPostgresAsync('foo', 2);
-        sleep(1);
-
-        try {
-            DB::connection('pgsql')
-                ->advisoryLocker()
-                ->forSession()
-                ->withLocking('foo', function () use (&$passed): void {
-                    $passed = true;
-                }, -1);
-
-            $this->assertSame(0, $proc->wait());
-            $this->assertTrue($passed);
+            $this->assertNotNull($result);
         } finally {
             $proc->wait();
         }

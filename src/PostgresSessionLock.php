@@ -10,6 +10,7 @@ use Illuminate\Database\PostgresConnection;
 use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\ReleasesWhenDestructed;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionTerminationListener;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use PDOException;
 use WeakMap;
 
@@ -36,8 +37,8 @@ final class PostgresSessionLock implements SessionLock, TransactionTerminationLi
     {
         if (!$this->released) {
             try {
-                $this->released = (new Selector($this->connection))
-                    ->selectBool('SELECT pg_advisory_unlock(hashtext(?))', [$this->key]);
+                $this->released = (bool)(new Selector($this->connection))
+                    ->select('SELECT pg_advisory_unlock(hashtext(?))', [$this->key]);
             } catch (PDOException $e) {
                 // Postgres can't release session-level locks immediately
                 // when an error occurs within a transaction.

@@ -1,6 +1,6 @@
 {
     "name": "mpyw/laravel-database-advisory-lock",
-    "description": "Advisory Locking Features of Postgres/MySQL on Laravel",
+    "description": "Advisory Locking Features of Postgres/MySQL/MariaDB on Laravel",
     "type": "library",
     "license": "MIT",
     "authors": [

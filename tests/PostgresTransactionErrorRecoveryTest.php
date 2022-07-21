@@ -7,59 +7,44 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
+class PostgresTransactionErrorRecoveryTest extends TableTestCase
 {
-    use RefreshDatabase;
-
-    public array $connectionsToTransact = ['pgsql', 'pgsql2'];
-
     /**
      * @throws Throwable
      */
-    public function testImplicitTransactionRollbacksToSavepoint(): void
+    public function testWithoutTransactions(): void
     {
+        $passed = false;
+
         $conn = DB::connection('pgsql');
         assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
-        try {
-            $conn
-                ->advisoryLocker()
-                ->forSession()
-                ->withLocking('foo', function (ConnectionInterface $conn): void {
-                    // RefreshDatabase affects to the transaction level
-                    $this->assertSame(2, $conn->transactionLevel());
+        $conn
+            ->advisoryLocker()
+            ->forSession()
+            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+                $this->assertSame(0, $conn->transactionLevel());
+                $conn->insert('insert into users(id) values(1)');
+
+                try {
+                    // The following statement triggers an error
                     $conn->insert('insert into users(id) values(1)');
+                } catch (QueryException) {
+                }
+                // The following statement is valid because there are no transactions
+                $conn->insert('insert into users(id) values(2)');
+                $passed = true;
+            });
 
-                    try {
-                        // The following statement triggers an error
-                        $conn->insert('insert into users(id) values(1)');
-                    } catch (QueryException) {
-                    }
-                    // The following statement is invalid [*]
-                    $conn->insert('insert into users(id) values(2)');
-                });
-        } catch (QueryException $e) {
-            // Thrown from [*]
-            $this->assertSame(
-                'SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  '
-                . 'current transaction is aborted, commands ignored until end of transaction block '
-                . (
-                    version_compare($this->app->version(), '10.x-dev', '>=')
-                        ? '(Connection: pgsql, SQL: insert into users(id) values(2))'
-                        : '(SQL: insert into users(id) values(2))'
-                ),
-                $e->getMessage(),
-            );
-        }
-
+        $this->assertTrue($passed);
         $this->assertSame([
             'SELECT pg_try_advisory_lock(hashtext(?))',
             'insert into users(id) values(1)',
+            'insert into users(id) values(2)',
             'SELECT pg_advisory_unlock(hashtext(?))',
         ], array_column($conn->getQueryLog(), 'query'));
 
@@ -83,8 +68,7 @@ class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
         $conn->enableQueryLog();
 
         $conn->transaction(function (ConnectionInterface $conn) use (&$passed): void {
-            // RefreshDatabase affects to the transaction level
-            $this->assertSame(2, $conn->transactionLevel());
+            $this->assertSame(1, $conn->transactionLevel());
             $conn->insert('insert into users(id) values(1)');
 
             try {
@@ -92,8 +76,8 @@ class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
                     ->advisoryLocker()
                     ->forSession()
                     ->withLocking('foo', function (ConnectionInterface $conn): void {
-                        // The level is 3 because savepoint is automatically created
-                        $this->assertSame(3, $conn->transactionLevel());
+                        // The level is 2 because savepoint is automatically created
+                        $this->assertSame(2, $conn->transactionLevel());
 
                         // The following statement triggers an error
                         $conn->insert('insert into users(id) values(1)');
@@ -104,7 +88,7 @@ class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
             } catch (QueryException) {
             }
             // The following statement is valid because it is rolled back to the savepoint
-            $this->assertSame(2, $conn->transactionLevel());
+            $this->assertSame(1, $conn->transactionLevel());
             $conn->insert('insert into users(id) values(2)');
             $passed = true;
         });
@@ -128,7 +112,7 @@ class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
     /**
      * @throws Throwable
      */
-    public function testDestructorReleasesLocksAfterRollingBackToSavepoint(): void
+    public function testDestructorReleasesLocksAfterTransactionTerminated(): void
     {
         $conn = DB::connection('pgsql');
         assert($conn instanceof Connection);
@@ -136,13 +120,12 @@ class TransactionErrorRefreshDatabaseRecoveryTest extends TestCase
 
         try {
             $conn->transaction(function (ConnectionInterface $conn): void {
-                // RefreshDatabase affects to the transaction level
-                $this->assertSame(2, $conn->transactionLevel());
-
                 // lockOrFail() doesn't create any savepoints
+                $this->assertSame(1, $conn->transactionLevel());
+
                 /** @noinspection PhpUnusedLocalVariableInspection */
                 $lock = $conn->advisoryLocker()->forSession()->lockOrFail('foo');
-                $this->assertSame(2, $conn->transactionLevel());
+                $this->assertSame(1, $conn->transactionLevel());
 
                 $conn->insert('insert into users(id) values(1)');
 

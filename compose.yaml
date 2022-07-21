@@ -16,6 +16,14 @@ services:
       MYSQL_PASSWORD: testing
       MYSQL_ROOT_PASSWORD: testing
 
+  mariadb:
+    image: mariadb:10.0
+    environment:
+      MYSQL_DATABASE: testing
+      MYSQL_USER: testing
+      MYSQL_PASSWORD: testing
+      MYSQL_ROOT_PASSWORD: testing
+
   postgres:
     image: postgres:13.0
     environment:

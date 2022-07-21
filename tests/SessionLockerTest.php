@@ -13,13 +13,8 @@ class SessionLockerTest extends TestCase
 {
     use AcquiresLockInSeparateProcesses;
 
-    public function connections(): array
-    {
-        return ['postgres' => ['pgsql'], 'mysql' => ['mysql']];
-    }
-
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testDifferentKeysOnDifferentConnections(string $name): void
     {
@@ -41,7 +36,7 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testSameKeysOnDifferentConnections(string $name): void
     {
@@ -64,7 +59,7 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testDifferentKeysOnSameConnections(string $name): void
     {
@@ -86,7 +81,7 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testSameKeysOnSameConnections(string $name): void
     {
@@ -107,12 +102,15 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testMysqlHashing(): void
+    /**
+     * @dataProvider connectionsMysqlLike
+     */
+    public function testMysqlHashing(string $name): void
     {
         $key = str_repeat('a', 65);
         $passed = false;
 
-        DB::connection('mysql')
+        DB::connection($name)
             ->advisoryLocker()
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
@@ -129,12 +127,15 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    public function testMysqlHashingMultibyte(): void
+    /**
+     * @dataProvider connectionsMysqlLike
+     */
+    public function testMysqlHashingMultibyte(string $name): void
     {
         $key = str_repeat('あ', 65);
         $passed = false;
 
-        DB::connection('mysql')
+        DB::connection($name)
             ->advisoryLocker()
             ->forSession()
             ->withLocking($key, function (ConnectionInterface $conn) use ($key, &$passed): void {
@@ -152,7 +153,7 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testFiniteTimeoutSuccess(string $name): void
     {
@@ -172,14 +173,17 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    public function testFinitePostgresTimeoutSuccessConsecutive(): void
+    /**
+     * @dataProvider connectionsAll
+     */
+    public function testFiniteTimeoutSuccessConsecutive(string $name): void
     {
-        $proc1 = self::lockPostgresAsync('foo', 5);
-        $proc2 = self::lockPostgresAsync('baz', 5);
+        $proc1 = self::lockAsync($name, 'foo', 5);
+        $proc2 = self::lockAsync($name, 'baz', 5);
         sleep(1);
 
         try {
-            $conn = DB::connection('pgsql');
+            $conn = DB::connection($name);
             $results = [
                 $conn->advisoryLocker()->forSession()->tryLock('foo', 1),
                 $conn->advisoryLocker()->forSession()->tryLock('bar', 1),
@@ -197,7 +201,7 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsAll
      */
     public function testFiniteTimeoutExceeded(string $name): void
     {
@@ -218,7 +222,8 @@ class SessionLockerTest extends TestCase
     }
 
     /**
-     * @dataProvider connections
+     * @dataProvider connectionsMysql
+     * @dataProvider connectionsPostgres
      */
     public function testInfiniteTimeoutSuccess(string $name): void
     {
@@ -226,6 +231,7 @@ class SessionLockerTest extends TestCase
         sleep(1);
 
         try {
+            // MariaDB does not accept negative values
             $result = DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()

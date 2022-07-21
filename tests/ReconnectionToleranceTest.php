@@ -73,13 +73,16 @@ class ReconnectionToleranceTest extends TestCase
         $this->queries = [];
     }
 
-    public function testReconnectionWithoutActiveLocks(): void
+    /**
+     * @dataProvider connectionsMysql
+     */
+    public function testReconnectionWithoutActiveLocks(string $name): void
     {
         $this->startListening();
 
         try {
             // MySQL doesn't accept empty locks, so this will trigger QueryException
-            DB::connection('mysql')
+            DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()
                 ->withLocking('', fn () => null);
@@ -94,9 +97,12 @@ class ReconnectionToleranceTest extends TestCase
         ], $this->queries);
     }
 
-    public function testReconnectionWithActiveLocks(): void
+    /**
+     * @dataProvider connectionsMysql
+     */
+    public function testReconnectionWithActiveLocks(string $name): void
     {
-        DB::connection('mysql')
+        DB::connection($name)
             ->advisoryLocker()
             ->forSession()
             ->withLocking('foo', function (ConnectionInterface $conn): void {

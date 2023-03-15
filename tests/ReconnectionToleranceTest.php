@@ -45,7 +45,7 @@ class ReconnectionToleranceTest extends TestCase
 
         parent::setUp();
 
-        $events = $this->app->make(Dispatcher::class);
+        $events = $this->app?->make(Dispatcher::class);
         assert($events instanceof Dispatcher);
         $this->events = $events;
     }

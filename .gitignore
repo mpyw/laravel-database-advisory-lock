@@ -3,4 +3,4 @@ composer.lock
 /vendor/
 /build/logs/
 .php-cs-fixer.cache
-.phpunit.result.cache
+/.phpunit.cache/

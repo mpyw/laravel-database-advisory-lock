@@ -138,6 +138,7 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
                 $conn->insert('insert into users(id) values(2)');
                 $this->fail();
             });
+            // @phpstan-ignore-next-line
             $this->fail();
         } catch (QueryException $e) {
             // Thrown from [*]
@@ -145,7 +146,7 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
                 'SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  '
                 . 'current transaction is aborted, commands ignored until end of transaction block '
                 . (
-                    version_compare($this->app->version(), '10.x-dev', '>=')
+                    version_compare($this->app?->version() ?? '', '10.x-dev', '>=')
                         ? '(Connection: pgsql, SQL: insert into users(id) values(2))'
                         : '(SQL: insert into users(id) values(2))'
                 ),

@@ -51,16 +51,21 @@ jobs:
 
     strategy:
       matrix:
-        php: [8.1, '8.0']
+        php: ['8.0', 8.1, 8.2]
         lib:
+          - { laravel: ^11.0 }
           - { laravel: ^10.0 }
           - { laravel: ^9.0 }
-          - { laravel: ^8.0 }
         exclude:
-          - { php: '8.0', lib: { laravel: ^10.0 } }
+          - { php: 8.0, lib: { laravel: ^10.0 } }
+          - { php: 8.0, lib: { laravel: ^11.0 } }
+          - { php: 8.1, lib: { laravel: ^11.0 } }
+        include:
+          - { lib: { laravel: ^9.0 }, phpstan: 1 }
+          - { lib: { laravel: ^10.0 }, phpstan: 1 }
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -68,15 +73,9 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
 
-      - name: Set up MySQL
-        run: |
-          mysql \
-            --host=127.0.0.1 \
-            --port=3306 \
-            --user=root \
-            --password=testing <<< "
-              ALTER USER 'testing'@'%' IDENTIFIED WITH mysql_native_password BY 'testing';
-            "
+      - name: Remove impossible dependencies
+        if: ${{ matrix.phpstan != 1 }}
+        run: composer remove nunomaduro/larastan --dev --no-update
 
       - name: Adjust Package Versions
         run: |
@@ -90,6 +89,7 @@ jobs:
         run: composer cs
 
       - name: PHPStan
+        if: ${{ matrix.phpstan == 1 }}
         run: composer phpstan
 
       - name: Test

@@ -45,22 +45,22 @@ abstract class TestCase extends BaseTestCase
         ]);
     }
 
-    public function connectionsAll(): array
+    public static function connectionsAll(): array
     {
         return ['postgres' => ['pgsql'], 'mysql' => ['mysql'], 'mariadb' => ['mariadb']];
     }
 
-    public function connectionsMysql(): array
+    public static function connectionsMysql(): array
     {
         return ['mysql' => ['mysql']];
     }
 
-    public function connectionsMysqlLike(): array
+    public static function connectionsMysqlLike(): array
     {
         return ['mysql' => ['mysql'], 'mariadb' => ['mariadb']];
     }
 
-    public function connectionsPostgres(): array
+    public static function connectionsPostgres(): array
     {
         return ['postgres' => ['pgsql']];
     }

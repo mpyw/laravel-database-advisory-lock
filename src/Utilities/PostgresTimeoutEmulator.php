@@ -10,16 +10,15 @@ use Illuminate\Database\QueryException;
 use function preg_replace;
 
 /**
- * class PostgresTryLockLoopEmulator
+ * class PostgresTimeoutEmulator
  *
  * @internal
  */
-final class PostgresTryLockLoopEmulator
+final class PostgresTimeoutEmulator
 {
     public function __construct(
         private PostgresConnection $connection,
-    ) {
-    }
+    ) {}
 
     /**
      * Perform a time-limited lock acquisition.
@@ -27,7 +26,7 @@ final class PostgresTryLockLoopEmulator
      * @phpstan-param positive-int $timeout
      * @throws QueryException
      */
-    public function performTryLockLoop(string $key, int $timeout, bool $forTransaction = false): bool
+    public function performWithTimeout(string $key, int $timeout, bool $forTransaction = false): bool
     {
         // Binding parameters to procedures is only allowed when PDOStatement emulation is enabled.
         return PDOStatementEmulator::emulated(
@@ -45,33 +44,24 @@ final class PostgresTryLockLoopEmulator
     public function sql(int $timeout, bool $forTransaction): string
     {
         $suffix = $forTransaction ? '_xact' : '';
+        $modifier = $forTransaction ? 'LOCAL' : 'SESSION';
 
         $sql = <<<EOD
             CREATE OR REPLACE FUNCTION
-                pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(key text, timeout interval)
+                pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(key text, timeout text)
             RETURNS boolean
+            SET lock_timeout FROM CURRENT
             AS $$
-                DECLARE
-                    result boolean;
-                    start timestamp with time zone;
-                    now timestamp with time zone;
                 BEGIN
-                    start := clock_timestamp();
-                    LOOP
-                        SELECT pg_try_advisory{$suffix}_lock(hashtext(key)) INTO result;
-                        IF result THEN
-                            RETURN true;
-                        END IF;
-                        now := clock_timestamp();
-                        IF now - start > timeout THEN
-                            RETURN false;
-                        END IF;
-                        PERFORM pg_sleep(0.5);
-                    END LOOP;
+                    EXECUTE format('SET {$modifier} lock_timeout TO %L;', timeout);
+                    PERFORM pg_advisory{$suffix}_lock(hashtext(key));
+                    RETURN true;
+                EXCEPTION
+                    WHEN lock_not_available OR deadlock_detected THEN RETURN false;
                 END
             $$
             LANGUAGE plpgsql;
-            SELECT pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(?, interval '{$timeout} seconds');
+            SELECT pg_temp.laravel_pg_try_advisory{$suffix}_lock_timeout(?, '{$timeout}s');
         EOD;
 
         return (string)preg_replace('/\s++/', ' ', $sql);

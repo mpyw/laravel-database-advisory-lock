@@ -25,8 +25,7 @@ final class MySqlSessionLock implements SessionLock
         private MySqlConnection $connection,
         private WeakMap $locks,
         private string $key,
-    ) {
-    }
+    ) {}
 
     public function release(): bool
     {

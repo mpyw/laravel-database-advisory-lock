@@ -23,11 +23,11 @@ class SessionLockerTest extends TestCase
         DB::connection($name)
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function () use ($name, &$passed): void {
+            ->withLocking('foo', static function () use ($name, &$passed): void {
                 DB::connection("{$name}2")
                     ->advisoryLocker()
                     ->forSession()
-                    ->withLocking('bar', function () use (&$passed): void {
+                    ->withLocking('bar', static function () use (&$passed): void {
                         $passed = true;
                     });
             });
@@ -50,7 +50,7 @@ class SessionLockerTest extends TestCase
                 DB::connection("{$name}2")
                     ->advisoryLocker()
                     ->forSession()
-                    ->withLocking('foo', function () use (&$passed): void {
+                    ->withLocking('foo', static function () use (&$passed): void {
                         $passed = true;
                     });
             });
@@ -68,11 +68,11 @@ class SessionLockerTest extends TestCase
         DB::connection($name)
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+            ->withLocking('foo', static function (ConnectionInterface $conn) use (&$passed): void {
                 $conn
                     ->advisoryLocker()
                     ->forSession()
-                    ->withLocking('bar', function () use (&$passed): void {
+                    ->withLocking('bar', static function () use (&$passed): void {
                         $passed = true;
                     });
             });
@@ -90,11 +90,11 @@ class SessionLockerTest extends TestCase
         DB::connection($name)
             ->advisoryLocker()
             ->forSession()
-            ->withLocking('foo', function (ConnectionInterface $conn) use (&$passed): void {
+            ->withLocking('foo', static function (ConnectionInterface $conn) use (&$passed): void {
                 $conn
                     ->advisoryLocker()
                     ->forSession()
-                    ->withLocking('foo', function () use (&$passed): void {
+                    ->withLocking('foo', static function () use (&$passed): void {
                         $passed = true;
                     });
             });
@@ -190,7 +190,7 @@ class SessionLockerTest extends TestCase
                 $conn->advisoryLocker()->forSession()->tryLock('baz', 1),
                 $conn->advisoryLocker()->forSession()->tryLock('qux', 1),
             ];
-            $result_booleans = array_map(fn ($result) => $result !== null, $results);
+            $result_booleans = array_map(static fn ($result) => $result !== null, $results);
             $this->assertSame(0, $proc1->wait());
             $this->assertSame(0, $proc2->wait());
             $this->assertSame([false, true, false, true], $result_booleans);

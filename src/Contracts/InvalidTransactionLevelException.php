@@ -11,6 +11,4 @@ use BadMethodCallException;
  *
  * You can't use TransactionLocker outside of transaction.
  */
-class InvalidTransactionLevelException extends BadMethodCallException
-{
-}
+class InvalidTransactionLevelException extends BadMethodCallException {}

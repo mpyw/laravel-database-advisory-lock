@@ -16,7 +16,7 @@ final class ConnectionServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        Connection::resolverFor('mysql', fn (...$args) => new MySqlConnection(...$args));
-        Connection::resolverFor('pgsql', fn (...$args) => new PostgresConnection(...$args));
+        Connection::resolverFor('mysql', static fn (...$args) => new MySqlConnection(...$args));
+        Connection::resolverFor('pgsql', static fn (...$args) => new PostgresConnection(...$args));
     }
 }

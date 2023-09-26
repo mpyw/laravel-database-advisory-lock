@@ -20,6 +20,6 @@ final class AdvisoryLockServiceProvider extends ServiceProvider
 
     public function boot(TransactionEventHub $hub): void
     {
-        TransactionEventHub::setResolver(fn () => $hub);
+        TransactionEventHub::setResolver(static fn () => $hub);
     }
 }

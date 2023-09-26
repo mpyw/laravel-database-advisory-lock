@@ -9,7 +9,7 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\TransactionalLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\TransactionLocker;
-use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTryLockLoopEmulator;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTimeoutEmulator;
 use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 
 final class PostgresTransactionLocker implements TransactionLocker
@@ -18,8 +18,7 @@ final class PostgresTransactionLocker implements TransactionLocker
 
     public function __construct(
         protected PostgresConnection $connection,
-    ) {
-    }
+    ) {}
 
     public function lockOrFail(string $key, int $timeout = 0): void
     {
@@ -28,10 +27,10 @@ final class PostgresTransactionLocker implements TransactionLocker
         }
 
         if ($timeout > 0) {
-            // Positive timeout can be emulated through repeating sleep and retry
-            $emulator = new PostgresTryLockLoopEmulator($this->connection);
+            // Positive timeout can be performed through temporary function
+            $emulator = new PostgresTimeoutEmulator($this->connection);
             $sql = $emulator->sql($timeout, false);
-            $result = $emulator->performTryLockLoop($key, $timeout, true);
+            $result = $emulator->performWithTimeout($key, $timeout, true);
         } else {
             // Negative timeout means infinite wait
             // Zero timeout means no wait

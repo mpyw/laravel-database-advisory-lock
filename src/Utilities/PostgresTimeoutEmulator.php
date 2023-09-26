@@ -23,10 +23,10 @@ final class PostgresTimeoutEmulator
     /**
      * Perform a time-limited lock acquisition.
      *
-     * @phpstan-param positive-int $timeout
+     * @phpstan-param positive-int|float $timeout
      * @throws QueryException
      */
-    public function performWithTimeout(string $key, int $timeout, bool $forTransaction = false): bool
+    public function performWithTimeout(string $key, int|float $timeout, bool $forTransaction = false): bool
     {
         // Binding parameters to procedures is only allowed when PDOStatement emulation is enabled.
         return PDOStatementEmulator::emulated(
@@ -39,9 +39,9 @@ final class PostgresTimeoutEmulator
     /**
      * Generates SQL to emulate time-limited lock acquisition.
      *
-     * @phpstan-param positive-int $timeout
+     * @phpstan-param positive-int|float $timeout
      */
-    public function sql(int $timeout, bool $forTransaction): string
+    public function sql(int|float $timeout, bool $forTransaction): string
     {
         $suffix = $forTransaction ? '_xact' : '';
         $modifier = $forTransaction ? 'LOCAL' : 'SESSION';

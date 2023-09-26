@@ -161,6 +161,8 @@ END
 | Timeout: `0` (default; immediate, no wait) |        ✅        |   ✅   |    ✅    |
 | Timeout: `positive-int`                    | ✅<br>(Emulated) |   ✅   |    ✅    |
 | Timeout: `negative-int` (infinite wait)    |        ✅        |   ✅   |    ❌    |
+| Timeout: `float`                           |        ✅        |   ❌   |    ❌    |
 
 - Postgres does not natively support waiting for a finite specific amount of time, but this is emulated by looping through a temporary function.
 - MariaDB does not accept infinite timeouts. very large numbers can be used instead.
+- Float precision is not supported on MySQL/MariaDB.

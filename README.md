@@ -19,7 +19,7 @@ Advisory Locking Features of Postgres/MySQL/MariaDB on Laravel
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock:^4.2.1
+composer require mpyw/laravel-database-advisory-lock:^4.3
 ```
 
 ## Basic usage

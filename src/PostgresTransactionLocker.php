@@ -18,8 +18,7 @@ final class PostgresTransactionLocker implements TransactionLocker
 
     public function __construct(
         protected PostgresConnection $connection,
-    ) {
-    }
+    ) {}
 
     public function lockOrFail(string $key, int $timeout = 0): void
     {

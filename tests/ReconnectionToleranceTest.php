@@ -85,7 +85,7 @@ class ReconnectionToleranceTest extends TestCase
             DB::connection($name)
                 ->advisoryLocker()
                 ->forSession()
-                ->withLocking('', fn () => null);
+                ->withLocking('', static fn () => null);
         } catch (QueryException) {
         }
         $this->endListening();
@@ -113,7 +113,7 @@ class ReconnectionToleranceTest extends TestCase
                     $conn
                         ->advisoryLocker()
                         ->forSession()
-                        ->withLocking('', fn () => null);
+                        ->withLocking('', static fn () => null);
                 } catch (QueryException) {
                 }
                 $this->endListening();

@@ -20,8 +20,7 @@ final class Selector
 {
     public function __construct(
         private ConnectionInterface $connection,
-    ) {
-    }
+    ) {}
 
     /**
      * Run query to get a single value from the result.

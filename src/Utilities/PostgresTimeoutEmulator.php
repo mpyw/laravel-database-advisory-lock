@@ -18,8 +18,7 @@ final class PostgresTimeoutEmulator
 {
     public function __construct(
         private PostgresConnection $connection,
-    ) {
-    }
+    ) {}
 
     /**
      * Perform a time-limited lock acquisition.

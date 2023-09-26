@@ -16,7 +16,7 @@ abstract class TableTestCase extends TestCase
         $schema = Schema::connection('pgsql');
 
         $schema->dropIfExists('users');
-        $schema->create('users', function (Blueprint $table): void {
+        $schema->create('users', static function (Blueprint $table): void {
             $table->unsignedBigInteger('id')->unique();
         });
     }

@@ -11,6 +11,4 @@ use DomainException;
  *
  * Requested operation is not supported on the driver.
  */
-class UnsupportedDriverException extends DomainException
-{
-}
+class UnsupportedDriverException extends DomainException {}

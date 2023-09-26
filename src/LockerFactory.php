@@ -18,8 +18,7 @@ class LockerFactory implements Contracts\LockerFactory
 
     public function __construct(
         protected Connection $connection,
-    ) {
-    }
+    ) {}
 
     public function forTransaction(): TransactionLocker
     {
@@ -40,6 +39,7 @@ class LockerFactory implements Contracts\LockerFactory
         if ($this->connection instanceof PostgresConnection) {
             return $this->session ??= new PostgresSessionLocker($this->connection);
         }
+
         // @codeCoverageIgnoreStart
         throw new UnsupportedDriverException('SessionLocker is not supported');
         // @codeCoverageIgnoreEnd

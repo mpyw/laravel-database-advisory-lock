@@ -9,7 +9,7 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Concerns\SessionLocks;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLocker;
-use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTryLockLoopEmulator;
+use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\PostgresTimeoutEmulator;
 use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 use WeakMap;
 
@@ -36,10 +36,10 @@ final class PostgresSessionLocker implements SessionLocker
     public function lockOrFail(string $key, int $timeout = 0): SessionLock
     {
         if ($timeout > 0) {
-            // Positive timeout can be emulated through repeating sleep and retry
-            $emulator = new PostgresTryLockLoopEmulator($this->connection);
+            // Positive timeout can be performed through temporary function
+            $emulator = new PostgresTimeoutEmulator($this->connection);
             $sql = $emulator->sql($timeout, false);
-            $result = $emulator->performTryLockLoop($key, $timeout);
+            $result = $emulator->performWithTimeout($key, $timeout);
         } else {
             // Negative timeout means infinite wait
             // Zero timeout means no wait

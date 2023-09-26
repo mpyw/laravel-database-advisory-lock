@@ -7,6 +7,7 @@ namespace Mpyw\LaravelDatabaseAdvisoryLock\Tests;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
+use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedTimeoutPrecisionException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
 
 class SessionLockerTest extends TestCase
@@ -242,5 +243,61 @@ class SessionLockerTest extends TestCase
         } finally {
             $proc->wait();
         }
+    }
+
+    /**
+     * @dataProvider connectionsPostgres
+     */
+    public function testFloatTimeoutSuccess(string $name): void
+    {
+        $proc = self::lockAsync($name, 'foo', 2);
+        usleep(1_800_000);
+
+        try {
+            $result = DB::connection($name)
+                ->advisoryLocker()
+                ->forSession()
+                ->tryLock('foo', 0.4);
+
+            $this->assertSame(0, $proc->wait());
+            $this->assertNotNull($result);
+        } finally {
+            $proc->wait();
+        }
+    }
+
+    /**
+     * @dataProvider connectionsPostgres
+     */
+    public function testFloatTimeoutExceeded(string $name): void
+    {
+        $proc = self::lockAsync($name, 'foo', 2);
+        usleep(1_700_000);
+
+        try {
+            $result = DB::connection($name)
+                ->advisoryLocker()
+                ->forSession()
+                ->tryLock('foo', 0.1);
+
+            $this->assertSame(0, $proc->wait());
+            $this->assertNull($result);
+        } finally {
+            $proc->wait();
+        }
+    }
+
+    /**
+     * @dataProvider connectionsMysqlLike
+     */
+    public function testFloatTimeoutUnsupported(string $name): void
+    {
+        $this->expectException(UnsupportedTimeoutPrecisionException::class);
+        $this->expectExceptionMessage('Float timeout value is not allowed for MySQL/MariaDB: key=foo, timeout=0.1');
+
+        DB::connection($name)
+            ->advisoryLocker()
+            ->forSession()
+            ->tryLock('foo', 0.1);
     }
 }

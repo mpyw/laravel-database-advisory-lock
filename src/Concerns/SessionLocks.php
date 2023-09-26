@@ -9,9 +9,9 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\SessionLock;
 
 trait SessionLocks
 {
-    abstract public function lockOrFail(string $key, int $timeout = 0): SessionLock;
+    abstract public function lockOrFail(string $key, int|float $timeout = 0): SessionLock;
 
-    public function tryLock(string $key, int $timeout = 0): ?SessionLock
+    public function tryLock(string $key, int|float $timeout = 0): ?SessionLock
     {
         try {
             return $this->lockOrFail($key, $timeout);

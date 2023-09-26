@@ -27,12 +27,12 @@ interface SessionLocker
      * @psalm-param callable(ConnectionInterface): T $callback
      * @psalm-return T
      *
-     * @param int $timeout Time to wait before acquiring a lock. This is NOT the expiry of the lock.
+     * @param int|float $timeout Time to wait before acquiring a lock. This is NOT the expiry of the lock.
      *
      * @throws LockFailedException
      * @throws QueryException
      */
-    public function withLocking(string $key, callable $callback, int $timeout = 0): mixed;
+    public function withLocking(string $key, callable $callback, int|float $timeout = 0): mixed;
 
     /**
      * Attempts to acquire a lock or returns NULL if failed.
@@ -40,7 +40,7 @@ interface SessionLocker
      *
      * @throws QueryException
      */
-    public function tryLock(string $key, int $timeout = 0): ?SessionLock;
+    public function tryLock(string $key, int|float $timeout = 0): ?SessionLock;
 
     /**
      * Attempts to acquire a lock or throw LockFailedException if failed.
@@ -49,7 +49,7 @@ interface SessionLocker
      * @throws LockFailedException
      * @throws QueryException
      */
-    public function lockOrFail(string $key, int $timeout = 0): SessionLock;
+    public function lockOrFail(string $key, int|float $timeout = 0): SessionLock;
 
     /**
      * Indicates whether any session-level lock remains.

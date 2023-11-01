@@ -20,7 +20,7 @@ interface TransactionLocker
      *
      * @throws QueryException
      */
-    public function tryLock(string $key, int|float $timeout = 0): bool;
+    public function tryLock(string $key, float|int $timeout = 0): bool;
 
     /**
      * Attempts to acquire a lock or throw LockFailedException if failed.
@@ -29,5 +29,5 @@ interface TransactionLocker
      * @throws LockFailedException
      * @throws QueryException
      */
-    public function lockOrFail(string $key, int|float $timeout = 0): void;
+    public function lockOrFail(string $key, float|int $timeout = 0): void;
 }

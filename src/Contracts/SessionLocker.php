@@ -32,7 +32,7 @@ interface SessionLocker
      * @throws LockFailedException
      * @throws QueryException
      */
-    public function withLocking(string $key, callable $callback, int|float $timeout = 0): mixed;
+    public function withLocking(string $key, callable $callback, float|int $timeout = 0): mixed;
 
     /**
      * Attempts to acquire a lock or returns NULL if failed.
@@ -40,7 +40,7 @@ interface SessionLocker
      *
      * @throws QueryException
      */
-    public function tryLock(string $key, int|float $timeout = 0): ?SessionLock;
+    public function tryLock(string $key, float|int $timeout = 0): ?SessionLock;
 
     /**
      * Attempts to acquire a lock or throw LockFailedException if failed.
@@ -49,7 +49,7 @@ interface SessionLocker
      * @throws LockFailedException
      * @throws QueryException
      */
-    public function lockOrFail(string $key, int|float $timeout = 0): SessionLock;
+    public function lockOrFail(string $key, float|int $timeout = 0): SessionLock;
 
     /**
      * Indicates whether any session-level lock remains.

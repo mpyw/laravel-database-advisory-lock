@@ -32,7 +32,7 @@ final class MySqlSessionLocker implements SessionLocker
         $this->locks = new WeakMap();
     }
 
-    public function lockOrFail(string $key, int|float $timeout = 0): SessionLock
+    public function lockOrFail(string $key, float|int $timeout = 0): SessionLock
     {
         if (is_float($timeout)) {
             throw new UnsupportedTimeoutPrecisionException(sprintf(
@@ -66,7 +66,7 @@ final class MySqlSessionLocker implements SessionLocker
         return $lock;
     }
 
-    public function withLocking(string $key, callable $callback, int|float $timeout = 0): mixed
+    public function withLocking(string $key, callable $callback, float|int $timeout = 0): mixed
     {
         $lock = $this->lockOrFail($key, $timeout);
 

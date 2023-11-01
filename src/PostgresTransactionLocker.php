@@ -20,7 +20,7 @@ final class PostgresTransactionLocker implements TransactionLocker
         protected PostgresConnection $connection,
     ) {}
 
-    public function lockOrFail(string $key, int|float $timeout = 0): void
+    public function lockOrFail(string $key, float|int $timeout = 0): void
     {
         if ($this->connection->transactionLevel() < 1) {
             throw new InvalidTransactionLevelException('There are no transactions');

@@ -26,7 +26,7 @@ final class PostgresTimeoutEmulator
      * @phpstan-param positive-int|float $timeout
      * @throws QueryException
      */
-    public function performWithTimeout(string $key, int|float $timeout, bool $forTransaction = false): bool
+    public function performWithTimeout(string $key, float|int $timeout, bool $forTransaction = false): bool
     {
         // Binding parameters to procedures is only allowed when PDOStatement emulation is enabled.
         return PDOStatementEmulator::emulated(
@@ -41,7 +41,7 @@ final class PostgresTimeoutEmulator
      *
      * @phpstan-param positive-int|float $timeout
      */
-    public function sql(int|float $timeout, bool $forTransaction): string
+    public function sql(float|int $timeout, bool $forTransaction): string
     {
         $suffix = $forTransaction ? '_xact' : '';
         $modifier = $forTransaction ? 'LOCAL' : 'SESSION';

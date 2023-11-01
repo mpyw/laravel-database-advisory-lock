@@ -8,7 +8,7 @@ use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 
 trait TransactionalLocks
 {
-    public function tryLock(string $key, int|float $timeout = 0): bool
+    public function tryLock(string $key, float|int $timeout = 0): bool
     {
         try {
             $this->lockOrFail($key, $timeout);
@@ -19,5 +19,5 @@ trait TransactionalLocks
         }
     }
 
-    abstract public function lockOrFail(string $key, int|float $timeout = 0): void;
+    abstract public function lockOrFail(string $key, float|int $timeout = 0): void;
 }

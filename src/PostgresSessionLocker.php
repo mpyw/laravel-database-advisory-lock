@@ -33,7 +33,7 @@ final class PostgresSessionLocker implements SessionLocker
      *
      * Use of this method is strongly discouraged in Postgres. Use withLocking() instead.
      */
-    public function lockOrFail(string $key, int|float $timeout = 0): SessionLock
+    public function lockOrFail(string $key, float|int $timeout = 0): SessionLock
     {
         if ($timeout > 0) {
             // Positive timeout can be performed through temporary function
@@ -67,7 +67,7 @@ final class PostgresSessionLocker implements SessionLocker
         return $lock;
     }
 
-    public function withLocking(string $key, callable $callback, int|float $timeout = 0): mixed
+    public function withLocking(string $key, callable $callback, float|int $timeout = 0): mixed
     {
         $lock = $this->lockOrFail($key, $timeout);
 

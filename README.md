@@ -166,3 +166,81 @@ END
 - Postgres does not natively support waiting for a finite specific amount of time, but this is emulated by looping through a temporary function.
 - MariaDB does not accept infinite timeouts. very large numbers can be used instead.
 - Float precision is not supported on MySQL/MariaDB.
+
+## Caveats about Transaction Levels
+
+### Key Principle
+
+> **Important**
+> Always avoid nested transactions when using advisory locks to ensure adherence to the **[S2PL (Strict 2-Phase Locking)](https://en.wikipedia.org/wiki/Two-phase_locking#Strict_two-phase_locking)** principle.
+
+### Recommended Approach
+
+When transactions and advisory locks are related, either locking approach can be applied.
+
+> **Note**
+> **Transaction-Level Locks:**  
+> <ins>Acquire the lock at the transaction nesting level 1</ins>, then rely on automatic release mechanisms.
+>
+> ```php
+> if (DB::transactionLevel() > 1) {
+>     throw new LogicException("Don't use nested transactions outside of this logic.");
+> }
+>
+> DB::advisoryLocker()
+>     ->forTransaction()
+>     ->lockOrFail('<key>');
+> // critical section with transaction here
+> ```
+
+> **Note**
+> **Session-Level Locks:**  
+> <ins>Acquire the lock at the transaction nesting level 0</ins>, then proceed to call `DB::transaction()` call.
+>
+> ```php
+> if (DB::transactionLevel() > 0) {
+>     throw new LogicException("Don't use transactions outside of this logic.");
+> }
+>
+> $result = DB::advisoryLocker()
+>     ->forSession()
+>     ->withLocking('<key>', fn (ConnectionInterface $conn) => $conn->transaction(function () {
+>         // critical section with transaction here
+>     }));
+> ```
+
+> **Warning**
+> When writing logic like this, [`DatabaseTruncation`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/DatabaseTruncation.php) must be used instead of [`RefreshDatabase`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/RefreshDatabase.php).
+
+### Considerations
+
+> **Warning**
+> **Transaction-Level Locks:**  
+> Don't take transaction-level locks in nested transactions. They are unaware of Laravel's nested transaction emulation.
+
+> **Warning**
+> **Session-Level Locks:**
+> Don't take session-level locks in the transactions when the content to be committed by the transaction is related to the advisory locks.
+
+What would happen if we released a session-level lock within a transaction? Let's verify this with a timeline chart, assuming a `READ COMMITTED` isolation level on Postgres. The bank account X is operated from two sessions A and B concurrently.
+
+| Session A                                                          | Session B                                                                                             |
+|:-------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------|
+| `BEGIN`                                                            |                                                                                                       |
+| ︙                                                                  | `BEGIN`                                                                                               |
+| `pg_advisory_lock(X)`                                              | ︙                                                                                                     |
+| ︙                                                                  | `pg_advisory_lock(X)`                                                                                 |
+| Fetch balance of User X<br>(Balance: 1000 USD)                     | ︙                                                                                                     |
+| ︙                                                                  | ︙                                                                                                     |
+| Deduct 800 USD if balance permits<br>(Balance: 1000 USD → 200 USD) | ︙                                                                                                     |
+| ︙                                                                  | ︙                                                                                                     |
+| `pg_advisory_unlock(X)`                                            | ︙                                                                                                     |
+| ︙                                                                  | Fetch balance of User X<br>**(Balance: 1000 USD :heavy_exclamation_mark:)**                           |
+| ︙                                                                  | ︙                                                                                                     |
+| ︙                                                                  | Deduct 800 USD if balance permits<br>**(Balance: 1000 USD → 200 USD :bangbang:)**                     |
+| `COMMIT`                                                           | ︙                                                                                                     |
+| ︙                                                                  | `pg_advisory_unlock(X)`                                                                               |
+| Fetch balance of User X<br>(Balance: 200 USD)                      | ︙                                                                                                     |
+|                                                                    | `COMMIT`                                                                                              |
+|                                                                    | ︙                                                                                                     |
+|                                                                    | Fetch balance of User X<br>(**Balance: <ins>-600 USD</ins>** :interrobang::interrobang::interrobang:) |

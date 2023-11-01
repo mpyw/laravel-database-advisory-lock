@@ -159,7 +159,7 @@ END
 |                                            |    Postgres     | MySQL | MariaDB |
 |:-------------------------------------------|:---------------:|:-----:|:-------:|
 | Timeout: `0` (default; immediate, no wait) |        ✅        |   ✅   |    ✅    |
-| Timeout: `positive-int`                    | ✅<br>(Emulated) |   ✅   |    ✅    |
+| Timeout: `positive-int`                    |        ✅        |   ✅   |    ✅    |
 | Timeout: `negative-int` (infinite wait)    |        ✅        |   ✅   |    ❌    |
 | Timeout: `float`                           |        ✅        |   ❌   |    ❌    |
 

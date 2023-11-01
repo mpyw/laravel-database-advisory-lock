@@ -79,8 +79,7 @@ jobs:
 
       - name: Adjust Package Versions
         run: |
-          composer require "laravel/framework:${{ matrix.lib.laravel }}" --dev --no-update
-          composer update
+          composer require -W "laravel/framework:${{ matrix.lib.laravel }}" --dev
 
       - name: Prepare Coverage Directory
         run: mkdir -p build/logs

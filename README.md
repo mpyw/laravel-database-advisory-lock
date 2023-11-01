@@ -219,7 +219,7 @@ When transactions and advisory locks are related, either locking approach can be
 > Don't take transaction-level locks in nested transactions. They are unaware of Laravel's nested transaction emulation.
 
 > **Warning**
-> **Session-Level Locks:**
+> **Session-Level Locks:**  
 > Don't take session-level locks in the transactions when the content to be committed by the transaction is related to the advisory locks.
 
 What would happen if we released a session-level lock within a transaction? Let's verify this with a timeline chart, assuming a `READ COMMITTED` isolation level on Postgres. The bank account X is operated from two sessions A and B concurrently.

@@ -24,8 +24,9 @@ composer require mpyw/laravel-database-advisory-lock:^4.3
 
 ## Basic usage
 
-The default implementation is provided by `ConnectionServiceProvider`, however, **package discovery is not available**.
-Be careful that you MUST register it in **`config/app.php`** by yourself.
+> [!IMPORTANT]
+> The default implementation is provided by `ConnectionServiceProvider`, however, **package discovery is not available**.
+> Be careful that you MUST register it in **`config/app.php`** by yourself.
 
 ```php
 <?php
@@ -81,7 +82,8 @@ $result = DB::transaction(function (ConnectionInterface $conn) {
 
 ## Advanced Usage
 
-You can extend Connection classes with `AdvisoryLocks` trait by yourself.
+> [!TIP]
+> You can extend Connection classes with `AdvisoryLocks` trait by yourself.
 
 ```php
 <?php

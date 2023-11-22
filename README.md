@@ -225,24 +225,24 @@ When transactions and advisory locks are related, either locking approach can be
 
 > [!TIP]
 > What would happen if we released a session-level lock within a transaction? Let's verify this with a timeline chart, assuming a `READ COMMITTED` isolation level on Postgres. The bank account X is operated from two sessions A and B concurrently.
->
-> | Session A                                                          | Session B                                                                                             |
-> |:-------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------|
-> | `BEGIN`                                                            |                                                                                                       |
-> | ︙                                                                  | `BEGIN`                                                                                               |
-> | `pg_advisory_lock(X)`                                              | ︙                                                                                                     |
-> | ︙                                                                  | `pg_advisory_lock(X)`                                                                                 |
-> | Fetch balance of User X<br>(Balance: 1000 USD)                     | ︙                                                                                                     |
-> | ︙                                                                  | ︙                                                                                                     |
-> | Deduct 800 USD if balance permits<br>(Balance: 1000 USD → 200 USD) | ︙                                                                                                     |
-> | ︙                                                                  | ︙                                                                                                     |
-> | `pg_advisory_unlock(X)`                                            | ︙                                                                                                     |
-> | ︙                                                                  | Fetch balance of User X<br>**(Balance: 1000 USD :heavy_exclamation_mark:)**                           |
-> | ︙                                                                  | ︙                                                                                                     |
-> | ︙                                                                  | Deduct 800 USD if balance permits<br>**(Balance: 1000 USD → 200 USD :bangbang:)**                     |
-> | `COMMIT`                                                           | ︙                                                                                                     |
-> | ︙                                                                  | `pg_advisory_unlock(X)`                                                                               |
-> | Fetch balance of User X<br>(Balance: 200 USD)                      | ︙                                                                                                     |
-> |                                                                    | `COMMIT`                                                                                              |
-> |                                                                    | ︙                                                                                                     |
-> |                                                                    | Fetch balance of User X<br>(**Balance: <ins>-600 USD</ins>** :interrobang::interrobang::interrobang:) |
+
+| Session A                                                          | Session B                                                                                             |
+|:-------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------|
+| `BEGIN`                                                            |                                                                                                       |
+| ︙                                                                  | `BEGIN`                                                                                               |
+| `pg_advisory_lock(X)`                                              | ︙                                                                                                     |
+| ︙                                                                  | `pg_advisory_lock(X)`                                                                                 |
+| Fetch balance of User X<br>(Balance: 1000 USD)                     | ︙                                                                                                     |
+| ︙                                                                  | ︙                                                                                                     |
+| Deduct 800 USD if balance permits<br>(Balance: 1000 USD → 200 USD) | ︙                                                                                                     |
+| ︙                                                                  | ︙                                                                                                     |
+| `pg_advisory_unlock(X)`                                            | ︙                                                                                                     |
+| ︙                                                                  | Fetch balance of User X<br>**(Balance: 1000 USD :heavy_exclamation_mark:)**                           |
+| ︙                                                                  | ︙                                                                                                     |
+| ︙                                                                  | Deduct 800 USD if balance permits<br>**(Balance: 1000 USD → 200 USD :bangbang:)**                     |
+| `COMMIT`                                                           | ︙                                                                                                     |
+| ︙                                                                  | `pg_advisory_unlock(X)`                                                                               |
+| Fetch balance of User X<br>(Balance: 200 USD)                      | ︙                                                                                                     |
+|                                                                    | `COMMIT`                                                                                              |
+|                                                                    | ︙                                                                                                     |
+|                                                                    | Fetch balance of User X<br>(**Balance: <ins>-600 USD</ins>** :interrobang::interrobang::interrobang:) |

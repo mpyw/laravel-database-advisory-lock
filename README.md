@@ -173,8 +173,7 @@ END
 
 ### Key Principle
 
-> [!IMPORTANT]
-> Always avoid nested transactions when using advisory locks to ensure adherence to the **[S2PL (Strict 2-Phase Locking)](https://en.wikipedia.org/wiki/Two-phase_locking#Strict_two-phase_locking)** principle.
+Always avoid nested transactions when using advisory locks to ensure adherence to the **[S2PL (Strict 2-Phase Locking)](https://en.wikipedia.org/wiki/Two-phase_locking#Strict_two-phase_locking)** principle.
 
 ### Recommended Approach
 
@@ -211,7 +210,7 @@ When transactions and advisory locks are related, either locking approach can be
 >     }));
 > ```
 
-> [!CAUTION]
+> [!WARNING]
 > When writing logic like this, [`DatabaseTruncation`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/DatabaseTruncation.php) must be used instead of [`RefreshDatabase`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/RefreshDatabase.php).
 
 ### Considerations

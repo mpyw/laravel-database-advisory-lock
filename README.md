@@ -4,11 +4,14 @@ Advisory Locking Features of Postgres/MySQL/MariaDB on Laravel
 
 ## Requirements
 
-| Package | Version                              | Mandatory |
-|:--------|:-------------------------------------|:---------:|
-| PHP     | <code>^8.0.2</code>                  |     ✅     |
-| Laravel | <code>^9.0 &#124;&#124; ^10.0</code> |     ✅     |
-| PHPStan | <code>&gt;=1.1</code>                |           |
+| Package | Version                               | Mandatory |
+|:--------|:--------------------------------------|:---------:|
+| PHP     | <code>^8.2</code>                     |     ✅     |
+| Laravel | <code>^11.0 &#124;&#124; ^12.0</code> |     ✅     |
+| PHPStan | <code>&gt;=2.0</code>                 |           |
+
+> [!NOTE]
+> Older versions have outdated dependency requirements. If you cannot prepare the latest environment, please refer to past releases.
 
 | RDBMS    | Version                   |
 |:---------|:--------------------------|
@@ -19,7 +22,7 @@ Advisory Locking Features of Postgres/MySQL/MariaDB on Laravel
 ## Installing
 
 ```
-composer require mpyw/laravel-database-advisory-lock:^4.3
+composer require mpyw/laravel-database-advisory-lock:^4.4
 ```
 
 ## Basic usage

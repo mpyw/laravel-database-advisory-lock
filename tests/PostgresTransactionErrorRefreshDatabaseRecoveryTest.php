@@ -23,7 +23,6 @@ class PostgresTransactionErrorRefreshDatabaseRecoveryTest extends TestCase
     public function testImplicitTransactionRollbacksToSavepoint(): void
     {
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         try {
@@ -79,7 +78,6 @@ class PostgresTransactionErrorRefreshDatabaseRecoveryTest extends TestCase
         $passed = false;
 
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         $conn->transaction(function (ConnectionInterface $conn) use (&$passed): void {
@@ -131,7 +129,6 @@ class PostgresTransactionErrorRefreshDatabaseRecoveryTest extends TestCase
     public function testDestructorReleasesLocksAfterRollingBackToSavepoint(): void
     {
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         try {

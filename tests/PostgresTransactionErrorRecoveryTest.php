@@ -20,7 +20,6 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
         $passed = false;
 
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         $conn
@@ -64,7 +63,6 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
         $passed = false;
 
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         $conn->transaction(function (ConnectionInterface $conn) use (&$passed): void {
@@ -115,7 +113,6 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
     public function testDestructorReleasesLocksAfterTransactionTerminated(): void
     {
         $conn = DB::connection('pgsql');
-        assert($conn instanceof Connection);
         $conn->enableQueryLog();
 
         try {

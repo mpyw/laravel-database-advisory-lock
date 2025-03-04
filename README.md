@@ -174,21 +174,20 @@ END
 
 ## Caveats about Transaction Levels
 
-### Key Principle
-
-Always avoid nested transactions when using advisory locks to ensure adherence to the **[S2PL (Strict 2-Phase Locking)](https://en.wikipedia.org/wiki/Two-phase_locking#Strict_two-phase_locking)** principle.
-
 ### Recommended Approach
 
-When transactions and advisory locks are related, either locking approach can be applied.
+When transactions and advisory locks are related, either locking approach can be applied. 
+
+> [!TIP]
+> **For Postgres, always prefer Transaction-Level Locking.**
 
 > [!NOTE]
 > **Transaction-Level Locks:**  
-> <ins>Acquire the lock at the transaction nesting level 1</ins>, then rely on automatic release mechanisms.
+> Ensure the current context is <ins>inside the transaction</ins>, then rely on automatic release mechanisms.
 >
 > ```php
-> if (DB::transactionLevel() > 1) {
->     throw new LogicException("Don't use nested transactions outside of this logic.");
+> if (DB::transactionLevel() < 1) {
+>     throw new LogicException("Unexpectedly transaction is not active.");
 > }
 >
 > DB::advisoryLocker()
@@ -199,11 +198,11 @@ When transactions and advisory locks are related, either locking approach can be
 
 > [!NOTE]
 > **Session-Level Locks:**  
-> <ins>Acquire the lock at the transaction nesting level 0</ins>, then proceed to call `DB::transaction()` call.
+> Ensure the current context is <ins>outside the transaction</ins>, then proceed to call `DB::transaction()` call.
 >
 > ```php
 > if (DB::transactionLevel() > 0) {
->     throw new LogicException("Don't use transactions outside of this logic.");
+>     throw new LogicException("Unexpectedly transaction is already active.");
 > }
 >
 > $result = DB::advisoryLocker()
@@ -217,10 +216,6 @@ When transactions and advisory locks are related, either locking approach can be
 > When writing logic like this, [`DatabaseTruncation`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/DatabaseTruncation.php) must be used instead of [`RefreshDatabase`](https://github.com/laravel/framework/blob/87b9e7997e178dfc4acd5e22fa8d77ba333c3abd/src/Illuminate/Foundation/Testing/RefreshDatabase.php).
 
 ### Considerations
-
-> [!CAUTION]
-> **Transaction-Level Locks:**  
-> Don't take transaction-level locks in nested transactions. They are unaware of Laravel's nested transaction emulation.
 
 > [!CAUTION]
 > **Session-Level Locks:**  

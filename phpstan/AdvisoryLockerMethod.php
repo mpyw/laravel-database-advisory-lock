@@ -15,8 +15,6 @@ use PHPStan\Type\Generic\TemplateTypeMap;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
-use function is_a;
-
 final class AdvisoryLockerMethod implements MethodReflection
 {
     private ClassReflection $class;

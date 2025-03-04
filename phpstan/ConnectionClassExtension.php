@@ -18,8 +18,8 @@ final class ConnectionClassExtension implements MethodsClassReflectionExtension
     {
         return $methodName === 'advisoryLocker'
             && (
-                is_a($classReflection->getName(), ConnectionInterface::class, true)
-                || is_a($classReflection->getName(), DB::class, true)
+                $classReflection->is(ConnectionInterface::class)
+                || $classReflection->is(DB::class)
             );
     }
 

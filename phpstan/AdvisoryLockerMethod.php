@@ -33,7 +33,7 @@ final class AdvisoryLockerMethod implements MethodReflection
 
     public function isStatic(): bool
     {
-        return is_a($this->class->getName(), DB::class, true);
+        return $this->class->is(DB::class);
     }
 
     public function isPrivate(): bool

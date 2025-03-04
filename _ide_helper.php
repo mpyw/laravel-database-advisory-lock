@@ -14,9 +14,7 @@ namespace Illuminate\Database
 
         class Connection implements ConnectionInterface
         {
-            public function advisoryLocker(): LockerFactory
-            {
-            }
+            public function advisoryLocker(): LockerFactory {}
         }
     }
 }
@@ -28,9 +26,7 @@ namespace Illuminate\Support\Facades
     if (false) {
         class DB extends Facade
         {
-            public static function advisoryLocker(): LockerFactory
-            {
-            }
+            public static function advisoryLocker(): LockerFactory {}
         }
     }
 }

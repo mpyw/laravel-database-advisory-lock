@@ -15,8 +15,6 @@ use PHPStan\Type\Generic\TemplateTypeMap;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
-use function is_a;
-
 final class AdvisoryLockerMethod implements MethodReflection
 {
     private ClassReflection $class;
@@ -33,7 +31,7 @@ final class AdvisoryLockerMethod implements MethodReflection
 
     public function isStatic(): bool
     {
-        return is_a($this->class->getName(), DB::class, true);
+        return $this->class->is(DB::class);
     }
 
     public function isPrivate(): bool

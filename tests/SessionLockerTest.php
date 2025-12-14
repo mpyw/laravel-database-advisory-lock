@@ -9,14 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\UnsupportedTimeoutPrecisionException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Utilities\Selector;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class SessionLockerTest extends TestCase
 {
     use AcquiresLockInSeparateProcesses;
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testDifferentKeysOnDifferentConnections(string $name): void
     {
         $passed = false;
@@ -36,9 +35,7 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testSameKeysOnDifferentConnections(string $name): void
     {
         DB::connection($name)
@@ -59,9 +56,7 @@ class SessionLockerTest extends TestCase
         $this->fail();
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testDifferentKeysOnSameConnections(string $name): void
     {
         $passed = false;
@@ -81,9 +76,7 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testSameKeysOnSameConnections(string $name): void
     {
         $passed = false;
@@ -103,9 +96,7 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsMysqlLike
-     */
+    #[DataProvider('connectionsMysqlLike')]
     public function testMysqlHashing(string $name): void
     {
         $key = str_repeat('a', 65);
@@ -128,9 +119,7 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsMysqlLike
-     */
+    #[DataProvider('connectionsMysqlLike')]
     public function testMysqlHashingMultibyte(string $name): void
     {
         $key = str_repeat('あ', 65);
@@ -153,9 +142,7 @@ class SessionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testFiniteTimeoutSuccess(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);
@@ -174,9 +161,7 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testFiniteTimeoutSuccessConsecutive(string $name): void
     {
         $proc1 = self::lockAsync($name, 'foo', 5);
@@ -201,9 +186,7 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsAll
-     */
+    #[DataProvider('connectionsAll')]
     public function testFiniteTimeoutExceeded(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 3);
@@ -222,10 +205,8 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsMysql
-     * @dataProvider connectionsPostgres
-     */
+    #[DataProvider('connectionsMysql')]
+    #[DataProvider('connectionsPostgres')]
     public function testInfiniteTimeoutSuccess(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);
@@ -245,9 +226,7 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testFloatTimeoutSuccess(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);
@@ -266,9 +245,7 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testFloatTimeoutExceeded(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);
@@ -287,9 +264,7 @@ class SessionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsMysqlLike
-     */
+    #[DataProvider('connectionsMysqlLike')]
     public function testFloatTimeoutUnsupported(string $name): void
     {
         $this->expectException(UnsupportedTimeoutPrecisionException::class);

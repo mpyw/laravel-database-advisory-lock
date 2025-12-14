@@ -9,11 +9,12 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
-/**
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- */
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 class ReconnectionToleranceTest extends TestCase
 {
     /**
@@ -56,9 +57,7 @@ class ReconnectionToleranceTest extends TestCase
         $this->queries = [];
     }
 
-    /**
-     * @dataProvider connectionsMysql
-     */
+    #[DataProvider('connectionsMysql')]
     public function testReconnectionWithoutActiveLocks(string $name): void
     {
         $this->startListening();
@@ -80,9 +79,7 @@ class ReconnectionToleranceTest extends TestCase
         ], $this->queries);
     }
 
-    /**
-     * @dataProvider connectionsMysql
-     */
+    #[DataProvider('connectionsMysql')]
     public function testReconnectionWithActiveLocks(string $name): void
     {
         DB::connection($name)

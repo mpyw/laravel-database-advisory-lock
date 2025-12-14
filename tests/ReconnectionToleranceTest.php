@@ -9,7 +9,6 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use ReflectionException;
 
 /**
  * @runTestsInSeparateProcesses
@@ -23,26 +22,10 @@ class ReconnectionToleranceTest extends TestCase
     private array $queries;
     private Dispatcher $events;
 
-    /**
-     * @throws ReflectionException
-     */
     protected function setUp(): void
     {
-        // Make connections to consider all errors as disconnect errors
-        eval(
-            <<<'EOD'
-            namespace Illuminate\Database;
-            use Throwable;
-            trait DetectsLostConnections
-            {
-                protected function causedByLostConnection(Throwable $e): bool
-                {
-                    return true;
-                }
-            }
-            EOD
-        );
-
+        // The DetectsLostConnections trait is stubbed in bootstrap_reconnection.php
+        // to make all errors appear as disconnect errors.
         parent::setUp();
 
         $events = $this->app?->make(Dispatcher::class);

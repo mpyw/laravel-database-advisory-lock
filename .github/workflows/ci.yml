@@ -100,9 +100,16 @@ jobs:
         run: composer phpstan
 
       - name: Test
-        run: composer test -- --testdox --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --testdox --coverage-clover build/logs/clover.xml
         env:
           PG_HOST: 127.0.0.1
+          MY_HOST: 127.0.0.1
+          MA_HOST: 127.0.0.1
+          MA_PORT: '3307'
+
+      - name: Test (Reconnection)
+        run: vendor/bin/phpunit -c phpunit.reconnection.xml --testdox
+        env:
           MY_HOST: 127.0.0.1
           MA_HOST: 127.0.0.1
           MA_PORT: '3307'

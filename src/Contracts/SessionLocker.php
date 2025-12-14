@@ -20,14 +20,14 @@ interface SessionLocker
      * QueryException may be thrown on connection-level errors.
      *
      * @phpstan-template T
-     * @phpstan-param callable(ConnectionInterface): T $callback
-     * @phpstan-return T
      *
      * @psalm-template T
-     * @psalm-param callable(ConnectionInterface): T $callback
-     * @psalm-return T
      *
      * @param int|float $timeout Time to wait before acquiring a lock. This is NOT the expiry of the lock.
+     * @phpstan-param callable(ConnectionInterface): T $callback
+     * @psalm-param callable(ConnectionInterface): T $callback
+     * @phpstan-return T
+     * @psalm-return T
      *
      * @throws LockFailedException
      * @throws QueryException

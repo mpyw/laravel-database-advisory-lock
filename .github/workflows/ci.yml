@@ -51,7 +51,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [8.2, 8.3, 8.4]
+        php: [8.2, 8.3, 8.4, 8.5]
         laravel: [^11.0, ^12.0, ^13.0.x-dev]
         exclude:
           - php: 8.2
@@ -100,9 +100,16 @@ jobs:
         run: composer phpstan
 
       - name: Test
-        run: composer test -- --testdox --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --testdox --coverage-clover build/logs/clover.xml
         env:
           PG_HOST: 127.0.0.1
+          MY_HOST: 127.0.0.1
+          MA_HOST: 127.0.0.1
+          MA_PORT: '3307'
+
+      - name: Test (Reconnection)
+        run: vendor/bin/phpunit -c phpunit.reconnection.xml --testdox --coverage-clover build/logs/clover-reconnection.xml
+        env:
           MY_HOST: 127.0.0.1
           MA_HOST: 127.0.0.1
           MA_PORT: '3307'
@@ -118,7 +125,7 @@ jobs:
           max_attempts: 3
           command: |
             composer global require php-coveralls/php-coveralls
-            php-coveralls --coverage_clover=build/logs/clover.xml -v
+            php-coveralls --coverage_clover=build/logs/clover.xml --coverage_clover=build/logs/clover-reconnection.xml -v
 
   coverage-aggregation:
     needs: build

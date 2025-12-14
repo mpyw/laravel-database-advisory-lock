@@ -8,16 +8,13 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
-use Throwable;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class TransactionLockerTest extends TestCase
 {
     use AcquiresLockInSeparateProcesses;
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testDifferentKeysOnDifferentConnections(string $name): void
     {
         $passed = false;
@@ -41,10 +38,7 @@ class TransactionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testSameKeysOnDifferentConnections(string $name): void
     {
         DB::connection($name)->transaction(function (ConnectionInterface $conn) use ($name): void {
@@ -67,10 +61,7 @@ class TransactionLockerTest extends TestCase
         $this->fail();
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testDifferentKeysOnSameConnections(string $name): void
     {
         $passed = false;
@@ -92,10 +83,7 @@ class TransactionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testSameKeysOnSameConnections(string $name): void
     {
         $passed = false;
@@ -117,10 +105,7 @@ class TransactionLockerTest extends TestCase
         $this->assertTrue($passed);
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testWithoutTransactions(string $name): void
     {
         $this->expectException(InvalidTransactionLevelException::class);
@@ -132,10 +117,7 @@ class TransactionLockerTest extends TestCase
             ->lockOrFail('foo');
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testFiniteTimeoutSuccess(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);
@@ -153,10 +135,7 @@ class TransactionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testFinitePostgresTimeoutSuccessConsecutive(string $name): void
     {
         $proc1 = self::lockAsync($name, 'foo', 5);
@@ -181,10 +160,7 @@ class TransactionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testFinitePostgresTimeoutExceeded(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 3);
@@ -202,10 +178,7 @@ class TransactionLockerTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider connectionsPostgres
-     * @throws Throwable
-     */
+    #[DataProvider('connectionsPostgres')]
     public function testInfinitePostgresTimeoutSuccess(string $name): void
     {
         $proc = self::lockAsync($name, 'foo', 2);

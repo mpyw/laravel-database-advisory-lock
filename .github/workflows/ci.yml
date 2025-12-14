@@ -108,7 +108,7 @@ jobs:
           MA_PORT: '3307'
 
       - name: Test (Reconnection)
-        run: vendor/bin/phpunit -c phpunit.reconnection.xml --testdox
+        run: vendor/bin/phpunit -c phpunit.reconnection.xml --testdox --coverage-clover build/logs/clover-reconnection.xml
         env:
           MY_HOST: 127.0.0.1
           MA_HOST: 127.0.0.1
@@ -125,7 +125,7 @@ jobs:
           max_attempts: 3
           command: |
             composer global require php-coveralls/php-coveralls
-            php-coveralls --coverage_clover=build/logs/clover.xml -v
+            php-coveralls --coverage_clover=build/logs/clover.xml --coverage_clover=build/logs/clover-reconnection.xml -v
 
   coverage-aggregation:
     needs: build

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\InvalidTransactionLevelException;
 use Mpyw\LaravelDatabaseAdvisoryLock\Contracts\LockFailedException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Throwable;
 
 class TransactionLockerTest extends TestCase
 {

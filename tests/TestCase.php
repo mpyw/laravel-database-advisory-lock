@@ -20,7 +20,10 @@ abstract class TestCase extends BaseTestCase
 
     protected function getEnvironmentSetUp($app): void
     {
-        config(['database.connections.mariadb' => config('database.connections.mysql')]);
+        config(['database.connections.mariadb' => array_merge(
+            (array)config('database.connections.mysql'),
+            ['driver' => 'mariadb'],
+        )]);
         config([
             'database.connections.pgsql.host' => getenv('PG_HOST') ?: 'postgres',
             'database.connections.pgsql.port' => getenv('PG_PORT') ?: '5432',

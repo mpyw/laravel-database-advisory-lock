@@ -24,10 +24,10 @@
     "require": {
         "php": "^8.2",
         "ext-pdo": "*",
-        "illuminate/events": "^11.0 || ^12.0 || ^13.0",
-        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
-        "illuminate/database": "^11.0 || ^12.0 || ^13.0",
-        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0"
+        "illuminate/events": "^11.0 || ^12.0 || ^13.0 || ^14.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0 || ^14.0",
+        "illuminate/database": "^11.0 || ^12.0 || ^13.0 || ^14.0",
+        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0 || ^14.0"
     },
     "require-dev": {
         "orchestra/testbench": "*",

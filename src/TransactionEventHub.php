@@ -57,8 +57,15 @@ final class TransactionEventHub
     /**
      * Register self::onTransactionTerminated() as a listener once per connection.
      */
-    public function initializeWithDispatcher(Dispatcher $dispatcher): void
+    public function initializeWithDispatcher(?Dispatcher $dispatcher): void
     {
+        // A connection is not guaranteed to have an event dispatcher, and the
+        // return type of Connection::getEventDispatcher() differs across Laravel
+        // versions (nullable on some, non-nullable on others), so accept null here.
+        if ($dispatcher === null) {
+            return;
+        }
+
         if (!isset($this->dispatchersAndListeners[$dispatcher])) {
             $dispatcher->listen(
                 [TransactionCommitted::class, TransactionRolledBack::class],

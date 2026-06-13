@@ -7,7 +7,7 @@ Advisory Locking Features of Postgres/MySQL/MariaDB on Laravel
 | Package | Version                               | Mandatory |
 |:--------|:--------------------------------------|:---------:|
 | PHP     | <code>^8.2</code>                     |     ✅     |
-| Laravel | <code>^11.0 &#124;&#124; ^12.0</code> |     ✅     |
+| Laravel | <code>^11.0 &#124;&#124; ^12.0 &#124;&#124; ^13.0 &#124;&#124; ^14.0</code> |     ✅     |
 | PHPStan | <code>&gt;=2.0</code>                 |           |
 
 > [!NOTE]
@@ -243,3 +243,21 @@ When transactions and advisory locks are related, either locking approach can be
 > |                                                                    | `COMMIT`                                                                                              |
 > |                                                                    | ︙                                                                                                     |
 > |                                                                    | Fetch balance of User X<br>(**Balance: <ins>-600 USD</ins>** :interrobang::interrobang::interrobang:) |
+
+> [!CAUTION]
+> **Transaction-Level Locks:**
+> A transaction-level advisory lock is bound to the **top-level** transaction, not to a nested one. Postgres releases it only when the enclosing top-level transaction ends — transaction-level locks ["behave more like regular lock requests"](https://www.postgresql.org/docs/current/explicit-locking.html#ADVISORY-LOCKS) and ["are held until the current transaction ends; there is no provision for manual release"](https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADVISORY-LOCKS-TABLE).
+>
+> Laravel implements nested `DB::transaction()` calls with `SAVEPOINT`s, and this interacts with the rule above in a way that is easy to overlook. When a **nested transaction commits** (i.e. its savepoint is released), a lock acquired inside it is **not** released: it is promoted to the enclosing (sub)transaction and stays held until the **outermost** transaction finishes. The lock is released early **only** when the nested transaction is *rolled back* (`ROLLBACK TO SAVEPOINT`), because ["if a lock is acquired after establishing a savepoint, the lock is released immediately if the savepoint is rolled back to"](https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-TABLES).
+>
+> | Step (single connection)                    | Advisory locks held afterwards |
+> |:---------------------------------------------|:-------------------------------|
+> | `BEGIN`                                      |                                |
+> | `pg_advisory_xact_lock(A)`                   | `A`                            |
+> | `SAVEPOINT sp1`                              | `A`                            |
+> | `pg_advisory_xact_lock(B)`                   | `A`, `B`                       |
+> | `RELEASE SAVEPOINT sp1` (nested **commit**)  | `A`, **`B` — still held**      |
+> | `ROLLBACK TO SAVEPOINT sp1` (nested rollback)| `A` — `B` would be released    |
+> | `COMMIT` (top-level)                         | *(all released)*               |
+>
+> So you **cannot** scope a transaction-level lock to just an inner transaction; its lifetime always extends to the outermost one. This is still **more reliable** than a session-level lock — it can never outlive its transaction and it sidesteps the race condition shown in the session-level example above — but the trade-off is that **the lock may be held longer than you intend** when acquired inside nested transactions. If you specifically need a lock to be released at the boundary of an inner transaction, a transaction-level lock is not the right tool.

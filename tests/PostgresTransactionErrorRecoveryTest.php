@@ -141,11 +141,7 @@ class PostgresTransactionErrorRecoveryTest extends TableTestCase
             $this->assertSame(
                 'SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  '
                 . 'current transaction is aborted, commands ignored until end of transaction block '
-                . (
-                    version_compare($this->app?->version() ?? '', '10.x-dev', '>=')
-                        ? '(Connection: pgsql, SQL: insert into users(id) values(2))'
-                        : '(SQL: insert into users(id) values(2))'
-                ),
+                . $this->expectedQueryExceptionTail('insert into users(id) values(2)'),
                 $e->getMessage(),
             );
         }

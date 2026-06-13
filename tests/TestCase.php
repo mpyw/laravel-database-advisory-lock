@@ -74,7 +74,7 @@ abstract class TestCase extends BaseTestCase
      *
      * - Laravel < 10:  (SQL: <sql>)
      * - Laravel >= 10: (Connection: <name>, SQL: <sql>)
-     * - Laravel >= 13: (Connection: <name>, Host: <host>, Port: <port>, Database: <db>, SQL: <sql>)
+     * - Laravel >= 12: (Connection: <name>, Host: <host>, Port: <port>, Database: <db>, SQL: <sql>)
      *
      * The host/port/database are read from the connection config so the
      * expectation stays exact regardless of the test environment.
@@ -87,7 +87,7 @@ abstract class TestCase extends BaseTestCase
             return "(SQL: {$sql})";
         }
 
-        if (version_compare($version, '13.x-dev', '>=')) {
+        if (version_compare($version, '12.x-dev', '>=')) {
             $host = config("database.connections.{$connection}.host");
             assert(is_string($host));
 

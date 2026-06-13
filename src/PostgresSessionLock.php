@@ -30,11 +30,7 @@ final class PostgresSessionLock implements SessionLock, TransactionTerminationLi
         private string $key,
     ) {
         $this->hub = TransactionEventHub::resolve();
-
-        $dispatcher = $this->connection->getEventDispatcher();
-        if ($dispatcher !== null) {
-            $this->hub?->initializeWithDispatcher($dispatcher);
-        }
+        $this->hub?->initializeWithDispatcher($this->connection->getEventDispatcher());
     }
 
     public function release(): bool

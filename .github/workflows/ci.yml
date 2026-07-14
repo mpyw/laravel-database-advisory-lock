@@ -115,7 +115,7 @@ jobs:
           MA_PORT: '3307'
 
       - name: Upload Coverage
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v4
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: 'true'
